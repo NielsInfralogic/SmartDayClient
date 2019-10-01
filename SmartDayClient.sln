@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartDayClient", "SmartDayClient\SmartDayClient.csproj", "{C1944706-841C-4F75-905B-11B4A37CD94A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1944706-841C-4F75-905B-11B4A37CD94A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1944706-841C-4F75-905B-11B4A37CD94A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1944706-841C-4F75-905B-11B4A37CD94A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1944706-841C-4F75-905B-11B4A37CD94A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27FE4150-D791-4F97-9AF1-40C80DDC0238}
+	EndGlobalSection
+EndGlobal
