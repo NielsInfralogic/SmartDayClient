@@ -1,0 +1,557 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SmartDayClient.DBaccess" Collapsed="true">
+    <Position X="14.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>KOAQARECCAaBAIGAEEIBwMIlAKERCQCQshUCxQQBAgo=</HashCode>
+      <FileName>DBaccess.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.DecimalJsonConverter" Collapsed="true">
+    <Position X="0.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQQAAAAAAAAAAAAAAAAAAAAAAAAAAACICAA=</HashCode>
+      <FileName>JsonConverter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Program" Collapsed="true">
+    <Position X="2.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ICAAAAAgAACCAQAAAAAAAAIggAAAAAAgAABABAAgAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.SmartDayHttpClient" Collapsed="true">
+    <Position X="0.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gACkgAAgNhAABMBAAAAAABAAAAACCAgAAjgABAAQBgQ=</HashCode>
+      <FileName>SmartDayHttpClient.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Sync" Collapsed="true">
+    <Position X="14.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAA=</HashCode>
+      <FileName>Sync.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Utils" Collapsed="true">
+    <Position X="9.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EQAIAAoAACCAgAAEhECQgQAgQGAAAAArGALAAAACAAA=</HashCode>
+      <FileName>Utils.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Category">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAACAAAAAAAAAAwAFAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Reference" Collapsed="true">
+    <Position X="12.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanCategory" Collapsed="true">
+    <Position X="11" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAAIAAAAAAAAACAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayCategory" Collapsed="true">
+    <Position X="12.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAAAAAAAIAAAABAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Category.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.CategoryType" Collapsed="true">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BIABAACAEAAAEIAAAGCQAIAaAhAEAAEIAAAABIAEQAA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SalaryCodesID" Collapsed="true">
+    <Position X="2.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAMgABIABAAAAAAIAIAAgABABAAAAAAAAkAAAEAAEA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.OrderStatus" Collapsed="true">
+    <Position X="12.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABQAACAAIAAABAAACAAAAAAAEAAAAAAAAAIBAAAAA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ProjectStatus" Collapsed="true">
+    <Position X="5.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAJAAAAAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.MaterialStatus" Collapsed="true">
+    <Position X="7.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAACAAAAAAAAAAAAAAAAAAAAAAAAIAAEA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SalaryCodeStatus" Collapsed="true">
+    <Position X="4" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAACAAAAAAAAAAAAAAAAAAAAAAAAIAAEA=</HashCode>
+      <FileName>Models\Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Customer" Collapsed="true">
+    <Position X="11" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQQAASAEAAAAACgAAAAAAAAAkAEAAAAAAgAAACAAiA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.CategoryReference" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAEAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanAddress" Collapsed="true">
+    <Position X="9.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAAAAAAAAAAAAICAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.DenmarkAddress" Collapsed="true">
+    <Position X="2.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.NorwayAddress" Collapsed="true">
+    <Position X="9.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Location" Collapsed="true">
+    <Position X="4" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAQAAgAAAAAAAAAAAAACAALgAAQABCAAAAAAAAAiA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanContact" Collapsed="true">
+    <Position X="12.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Contact" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEACAAAAAAAAgAAAAAAAAAkAEAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanCustomer" Collapsed="true">
+    <Position X="14.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayCustomer" Collapsed="true">
+    <Position X="14.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanSite" Collapsed="true">
+    <Position X="7.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQACAAAAKIAAAAAAAAgAAAAAAAAAAAABBgI=</HashCode>
+      <FileName>Models\Customer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Department" Collapsed="true">
+    <Position X="4" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAIQAAAAgAEAAAAAAIAAAAAAgA=</HashCode>
+      <FileName>Models\Department.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Settings" Collapsed="true">
+    <Position X="9.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAIAAAAAAgAAAAEAAAAAAAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Department.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanDepartment" Collapsed="true">
+    <Position X="0.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Department.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Terminology" Collapsed="true">
+    <Position X="2.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAMAgAAAAAAgBAQAAAAAAAAAAAAAAABQAAAAQAAQAA=</HashCode>
+      <FileName>Models\Department.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Item" Collapsed="true">
+    <Position X="14.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABACgABBAgAAAgMAEAMAAAIgAIAACAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Item.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Material" Collapsed="true">
+    <Position X="5.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAIAAABAAgAEAAMIEAMADAAgAAAACAAAAEAQAAAgA=</HashCode>
+      <FileName>Models\Material.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayMaterial" Collapsed="true">
+    <Position X="2.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACCAAAA=</HashCode>
+      <FileName>Models\Material.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanMaterial" Collapsed="true">
+    <Position X="2.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BIAAAQAAAAAAwAAgCAAAAgAAKAAIIAAABCAEAAAAAAA=</HashCode>
+      <FileName>Models\Material.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.PickOrder" Collapsed="true">
+    <Position X="0.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAEAIAAAAAAAAAAAAAAAAQAAAABAAAAAAA=</HashCode>
+      <FileName>Models\Material.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Order" Collapsed="true">
+    <Position X="11" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAQEAEIAAgBCACAgAEIAAAAAAAAAKAAgg=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.CategoryReferenceOrder" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAgAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ReadonlyFieldsOrder" Collapsed="true">
+    <Position X="11" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAgAAAAAAAAAAAAAEAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanParticipant" Collapsed="true">
+    <Position X="5.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAQAAAAAAAAAAEAAACAAAAgAAAAAAABCA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Participant">
+    <Position X="14.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SecondaryCustomerReference" Collapsed="true">
+    <Position X="5.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAIEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ContributionMargin" Collapsed="true">
+    <Position X="9.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAEQAAAAEAQAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Elements" Collapsed="true">
+    <Position X="5.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAABAAAAAAAAAAIAAAAQAAAAIAAAAAAAAAAABAACA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.KbValue" Collapsed="true">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAABAIAAAAAAAAAEAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.InvoiceInfo" Collapsed="true">
+    <Position X="12.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABEAAAIAAAAAAAEAAAAAAAIAAACACQAgAACAiAAQEA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ReadonlyFields2" Collapsed="true">
+    <Position X="9.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAABAAAAAAEAIEAACAJAAAAgAAAAAAgA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.DataProcessingOptions" Collapsed="true">
+    <Position X="12.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAQAAAAAAAAgQAAAAAAAAEACAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanOrder" Collapsed="true">
+    <Position X="4" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAEAAAAAxAABQDIAAAjgogsBAkALIAgAAgQAADAFgig=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayOrder" Collapsed="true">
+    <Position X="4" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AARAAAACAAAAgAQBAAAAAgAAAAAQAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Order.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Project" Collapsed="true">
+    <Position X="4" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>RAQBAAAAQACAAAAEICAAAgAAAgAEAAAAIAAAAAKAAgA=</HashCode>
+      <FileName>Models\Projects.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Result" Collapsed="true">
+    <Position X="14.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABEAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>Models\Result.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Entity" Collapsed="true">
+    <Position X="7.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Models\Result.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SalaryCode" Collapsed="true">
+    <Position X="0.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAEAAAAAAAAIIkAAABAAgAAgAAAQAAAAQACAgA=</HashCode>
+      <FileName>Models\SalaryCode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdaySalaryCodeRegistration" Collapsed="true">
+    <Position X="5.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAACCAAAA=</HashCode>
+      <FileName>Models\SalaryCode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Site" Collapsed="true">
+    <Position X="11" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAQAAJAAAAAFAAAIAAAAAgAEAAAEAAAAAACAAgA=</HashCode>
+      <FileName>Models\Site.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ReadonlyFields" Collapsed="true">
+    <Position X="7.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>Models\Store.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanStore" Collapsed="true">
+    <Position X="9.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAQAAAAAgAAAAAAAAFACAAAAAACAAAQAA=</HashCode>
+      <FileName>Models\Store.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayStore" Collapsed="true">
+    <Position X="7.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Store.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Store" Collapsed="true">
+    <Position X="12.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAEAAAAAAAAAAAAAAAgAAAAAAIAAAAAAAAgA=</HashCode>
+      <FileName>Models\Store.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.Thing" Collapsed="true">
+    <Position X="4" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AwAAAAQIAAECAAAECIIAAAAQBwgMAIKEAAAAAACIAgI=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.ThingContact" Collapsed="true">
+    <Position X="5.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEACAAAAAAAAgAAAAAAAAAEAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SensorDetail" Collapsed="true">
+    <Position X="7.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAgAIAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.LastKnownSensorData" Collapsed="true">
+    <Position X="2.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAABAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.TelematicsThing" Collapsed="true">
+    <Position X="0.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.HandymanThing" Collapsed="true">
+    <Position X="11" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAYAgAAEAIIAAAAAAAAAAAAAAAAAAAAABDgA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayThing" Collapsed="true">
+    <Position X="9.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Models\Thing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.User" Collapsed="true">
+    <Position X="7.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAACAAAAAAEAgIAAAAgEAAgAEBAAAAAIAIgAAAgA=</HashCode>
+      <FileName>Models\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.SmartdayUser" Collapsed="true">
+    <Position X="11" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAAAAAAAAAAAAAEAAAQAAAAAAAAgAA=</HashCode>
+      <FileName>Models\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaAgreement" Collapsed="true">
+    <Position X="12.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIACAAEAQAAAACAAAAAgAAAQBAAAAAIAAAEhAABAAA=</HashCode>
+      <FileName>Models\VismaAgreement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaCustomer" Collapsed="true">
+    <Position X="14.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAQEAAAAAAAAAAAAEAAARAAAEBAACDAAAQogQQAAE=</HashCode>
+      <FileName>Models\VismaCustomer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaActor" Collapsed="true">
+    <Position X="11" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAACAAAARAAAEAAACDAAAAogQQAAA=</HashCode>
+      <FileName>Models\VismaCustomer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaOrder" Collapsed="true">
+    <Position X="0.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>GAABcEAAEDAAABAgAEBAiSWALimoADCKhwAosAQQAQI=</HashCode>
+      <FileName>Models\VismaOrder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaOrderLine" Collapsed="true">
+    <Position X="4" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEEAAAgAQAAABBAgBAACKAAAAABEgQAkAAAAAA=</HashCode>
+      <FileName>Models\VismaOrder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaOrderInfo" Collapsed="true">
+    <Position X="2.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Models\VismaOrder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaProject" Collapsed="true">
+    <Position X="5.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAIAkAAAQAAAEACRQEQAEAAACggBBgAQAAAA=</HashCode>
+      <FileName>Models\VismaProject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaServiceUnit" Collapsed="true">
+    <Position X="7.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\VismaServiceUnit.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SmartDayClient.Models.VismaThing" Collapsed="true">
+    <Position X="9.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAKAECABAAAAACAAAAAAIARAI4AEVCACAAAAIAAAACA=</HashCode>
+      <FileName>Models\VismaThing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="SmartDayClient.SyncType" Collapsed="true">
+    <Position X="0.5" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAgAEAEAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>Sync.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

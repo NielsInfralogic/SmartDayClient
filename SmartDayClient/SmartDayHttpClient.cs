@@ -107,7 +107,7 @@ namespace SmartDayClient
                     var settings = new JsonSerializerSettings
                     {
                         NullValueHandling = NullValueHandling.Ignore,
-                        MissingMemberHandling = MissingMemberHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore, 
 
                     };
                     return JsonConvert.DeserializeObject<Models.Project>(str, settings);
@@ -123,6 +123,11 @@ namespace SmartDayClient
             catch (HttpRequestException hre)
             {
                 Utils.WriteLog("Error:" + hre.Message);
+                if (hre.StackTrace != null)
+                    Utils.WriteLog("Error:" + hre.StackTrace);
+                if (hre.InnerException != null) 
+                    Utils.WriteLog("Error:" + hre.InnerException.Message);
+
             }
             catch (TaskCanceledException)
             {
@@ -131,6 +136,10 @@ namespace SmartDayClient
             catch (Exception ex)
             {
                 Utils.WriteLog("Exception:" + ex.Message);
+                if (ex.StackTrace != null)
+                    Utils.WriteLog("Error:" + ex.StackTrace);
+                if (ex.InnerException != null)
+                    Utils.WriteLog("Error:" + ex.InnerException.Message);
             }
             finally
             {
@@ -173,6 +182,10 @@ namespace SmartDayClient
             catch (HttpRequestException hre)
             {
                 Utils.WriteLog("Error:" + hre.Message);
+                if (hre.StackTrace != null)
+                    Utils.WriteLog("Error:" + hre.StackTrace);
+                if (hre.InnerException != null)
+                    Utils.WriteLog("Error:" + hre.InnerException.Message);
             }
             catch (TaskCanceledException)
             {
@@ -181,6 +194,10 @@ namespace SmartDayClient
             catch (Exception ex)
             {
                 Utils.WriteLog("Exception:" + ex.Message);
+                if (ex.StackTrace != null)
+                    Utils.WriteLog("Error:" + ex.StackTrace);
+                if (ex.InnerException != null)
+                    Utils.WriteLog("Error:" + ex.InnerException.Message);
             }
             finally
             {
@@ -484,6 +501,10 @@ namespace SmartDayClient
             catch (HttpRequestException hre)
             {
                 Utils.WriteLog("Error:" + hre.Message);
+                if (hre.StackTrace != null)
+                    Utils.WriteLog("Error:" + hre.StackTrace);
+                if (hre.InnerException != null)
+                    Utils.WriteLog("Error:" + hre.InnerException.Message);
             }
             catch (TaskCanceledException)
             {
@@ -492,6 +513,10 @@ namespace SmartDayClient
             catch (Exception ex)
             {
                 Utils.WriteLog("Exception:" + ex.Message);
+                if (ex.StackTrace != null)
+                    Utils.WriteLog("Error:" + ex.StackTrace);
+                if (ex.InnerException != null)
+                    Utils.WriteLog("Error:" + ex.InnerException.Message);
             }
             finally
             {
@@ -609,7 +634,7 @@ namespace SmartDayClient
             try
             {
                 string postBody = JsonConvert.SerializeObject(customers);
-
+                Utils.WriteLog(postBody);
                 HttpResponseMessage response = await client.PostAsync($"customers/", new StringContent(postBody, Encoding.UTF8, "application/json")).ConfigureAwait(false);
                 Utils.WriteLog("Response: " + response.StatusCode.ToString());
                 if (response.IsSuccessStatusCode)
@@ -1063,6 +1088,218 @@ namespace SmartDayClient
             return null;
         }
 
+
+        public async Task<List<Models.Document>> GetOrderDocumentsAsync(string id)
+        {
+            Utils.WriteLog($"Requesting GetOrderDocumentsAsync({id})");
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync($"orders/{id}/documents").ConfigureAwait(false);
+                Utils.WriteLog("Response: " + response.StatusCode.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                    };
+                    return JsonConvert.DeserializeObject<List<Models.Document>>(str, settings);
+
+                }
+                else
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    _lastError = str;
+                    return null;
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Utils.WriteLog("Error:" + hre.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                Utils.WriteLog("Request canceled");
+            }
+            catch (Exception ex)
+            {
+                Utils.WriteLog("Exception:" + ex.Message);
+            }
+            finally
+            {
+                /*if (httpClient != null)
+                {
+                    httpClient.Dispose();
+                    httpClient = null;
+                }*/
+            }
+            return null;
+        }
+
+        public async Task<Models.Document> GetOrderDocumentAsync(string id, string documentID)
+        {
+            Utils.WriteLog($"Requesting GetOrderDocumentAsync({id})");
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync($"orders/{id}/documents/{documentID}").ConfigureAwait(false);
+                Utils.WriteLog("Response: " + response.StatusCode.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                    };
+                    return JsonConvert.DeserializeObject<Models.Document>(str, settings);
+
+                }
+                else
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    _lastError = str;
+                    return null;
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Utils.WriteLog("Error:" + hre.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                Utils.WriteLog("Request canceled");
+            }
+            catch (Exception ex)
+            {
+                Utils.WriteLog("Exception:" + ex.Message);
+            }
+            finally
+            {
+                /*if (httpClient != null)
+                {
+                    httpClient.Dispose();
+                    httpClient = null;
+                }*/
+            }
+            return null;
+        }
+
+        public async Task<string> GetOrderDocumentDataAsync(string id, string documentID)
+        {
+            Utils.WriteLog($"Requesting GetOrderDocumentDataAsync({id})");
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync($"orders/{id}/documents/{documentID}/data").ConfigureAwait(false);
+                Utils.WriteLog("Response: " + response.StatusCode.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                    };
+                    return JsonConvert.DeserializeObject<string>(str, settings);
+
+                }
+                else
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    _lastError = str;
+                    return null;
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Utils.WriteLog("Error:" + hre.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                Utils.WriteLog("Request canceled");
+            }
+            catch (Exception ex)
+            {
+                Utils.WriteLog("Exception:" + ex.Message);
+            }
+            finally
+            {
+                /*if (httpClient != null)
+                {
+                    httpClient.Dispose();
+                    httpClient = null;
+                }*/
+            }
+            return null;
+        }
+
+        // document.data are expected to be Base64 encoded before creation..
+        public async Task<List<Models.Result>> CreateOrderDocumentsAsync(string id, List<Models.Document> orderdocuments)
+        {
+            Utils.WriteLog($"Requesting CreateOrderDocumentsAsync()");
+            try
+            {
+                string postBody = JsonConvert.SerializeObject(orderdocuments);
+
+                Utils.WriteLog(postBody);
+
+                HttpResponseMessage response = await client.PostAsync($"orders/{id}/documents", new StringContent(postBody, Encoding.UTF8, "application/json")).ConfigureAwait(false);
+                Utils.WriteLog("Response: " + response.StatusCode.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                    };
+                    Utils.WriteLog("Response: " + str);
+                    return JsonConvert.DeserializeObject<List<Models.Result>>(str, settings);
+
+                }
+                else
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    _lastError = str;
+                    return null;
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Utils.WriteLog("Error:" + hre.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                Utils.WriteLog("Request canceled");
+            }
+            catch (Exception ex)
+            {
+                Utils.WriteLog("Exception:" + ex.Message);
+            }
+            finally
+            {
+                /*if (httpClient != null)
+                {
+                    httpClient.Dispose();
+                    httpClient = null;
+                }*/
+            }
+            return null;
+        }
+
+
+
         //####
         public async Task<List<Models.Result>> CreateOrdersAsync(List<Models.Order> orders)
         {
@@ -1125,7 +1362,7 @@ namespace SmartDayClient
             try
             {
                 string postBody = JsonConvert.SerializeObject(materials);
-
+                Utils.WriteLog(postBody);
                 HttpResponseMessage response = await client.PostAsync($"orders/{id}/materials/", new StringContent(postBody, Encoding.UTF8, "application/json")).ConfigureAwait(false);
                 Utils.WriteLog("Response: " + response.StatusCode.ToString());
                 if (response.IsSuccessStatusCode)
@@ -1170,7 +1407,6 @@ namespace SmartDayClient
             }
             return null;
         }
-
 
         public async Task<List<Models.Result>> CreateSalaryCodesForOrderAsync(string id, List<Models.SalaryCode> salaryCodes)
         {
@@ -1223,7 +1459,6 @@ namespace SmartDayClient
             }
             return null;
         }
-
 
         public async Task<List<Models.Department>> GetDepartmentsAsync()
         {
@@ -1377,14 +1612,13 @@ namespace SmartDayClient
         }
 
 
-        public async Task<Models.Site> GetSiteAsync(string id, string customerId)
+        public async Task<List<Models.Site>> GetSitesAsync(string customerId)
         {
-            Utils.WriteLog($"Requesting GetSiteAsync({id},{customerId})");
+            Utils.WriteLog($"Requesting GetSiteAsync({customerId})");
             try
             {
                 string queryString = "";
-                if (id != "")
-                    queryString = id;
+               
                 if (customerId != "")
                     queryString = "?customerId=" + customerId;
 
@@ -1402,13 +1636,62 @@ namespace SmartDayClient
                     };
 
                     // Return first
-                    List<Models.Site> sites = JsonConvert.DeserializeObject<List<Models.Site>>(str, settings);
-                    if (sites == null)
-                        return null;
-                    if (sites.Count == 0)
-                        return null;
+                    return JsonConvert.DeserializeObject<List<Models.Site>>(str, settings);
 
-                    return sites[0];
+                }
+                else
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    _lastError = str;
+                    return null;
+                }
+            }
+            catch (HttpRequestException hre)
+            {
+                Utils.WriteLog("Error:" + hre.Message);
+            }
+            catch (TaskCanceledException)
+            {
+                Utils.WriteLog("Request canceled");
+            }
+            catch (Exception ex)
+            {
+                Utils.WriteLog("Exception:" + ex.Message);
+            }
+            finally
+            {
+                /*if (httpClient != null)
+                {
+                    httpClient.Dispose();
+                    httpClient = null;
+                }*/
+            }
+            return null;
+        }
+
+        public async Task<Models.Site> GetSiteAsync(string id)
+        {
+            Utils.WriteLog($"Requesting GetSiteAsync({id})");
+            try
+            {
+
+                HttpResponseMessage response = await client.GetAsync($"sites/{id}").ConfigureAwait(false);
+                Utils.WriteLog("Response: " + response.StatusCode.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    string str = await response.Content.ReadAsStringAsync();
+                    Utils.WriteLog(str);
+                    var settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                    };
+
+                    // Return first
+                    return JsonConvert.DeserializeObject<Models.Site>(str, settings);
+
                 }
                 else
                 {

@@ -114,6 +114,9 @@ namespace SmartDayClient
 
         public static int StringToInt(string s)
         {
+            if (s == "")
+                return 0;
+
             int n = 0;
             Int32.TryParse(s, out n);
 
@@ -522,5 +525,54 @@ namespace SmartDayClient
             return Models.CategoryType.Order_Opgave;
 
         }
+
+        public static int MapCountry(string ctry)
+        {
+            ctry = ctry.ToUpper();
+            if (ctry == "SE" || ctry == "SWEDEN" || ctry == "SVERIGE")
+                return 46;
+            if (ctry == "DK" || ctry == "DENMARK" || ctry == "DANMARK")
+                return 45;
+            if (ctry == "DN" || ctry == "NORWAY" || ctry == "NORGE")
+                return 47;
+
+            return 0;
+
+        }
+
+        public static bool WriteToMemoFile(string memoPath, string memotext)
+        {
+            memoPath = memoPath.ToLower();
+            memoPath = memoPath.Replace(@"v:", Utils.ReadConfigString("v-drive", @"\\File10\k_4018$\Visma"));
+            memoPath = memoPath.Replace(@"f:", Utils.ReadConfigString("f-drive", @"\\File10\k_4018$\Visma"));
+            memoPath = memoPath.Replace(@"g:", Utils.ReadConfigString("g-drive", @"\\192.168.100.31\group"));
+
+            try
+            {
+                if (!File.Exists(memoPath))
+                    Directory.CreateDirectory(Path.GetDirectoryName(memoPath));
+                else
+                    File.Delete(memoPath);
+
+                using (FileStream fileStream = new FileStream(memoPath, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    using (StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.Default))
+                    {
+                        streamWriter.Write(memotext);
+                        streamWriter.Flush();
+                        streamWriter.Close();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                WriteLog("Error writing memo file " + memoPath + " - " + exception.Message);
+                return false;
+            }
+
+            return true;
+        }
+
+
     }
 }

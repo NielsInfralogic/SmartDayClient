@@ -70,7 +70,7 @@ namespace SmartDayClient.Models
 
     public static class OrderStatus
     {
-        public const int Finished = 8;
+        public const int Approved = 8;
         public const int Finished_Aborted = 7;
 
         public const int Pending = 1;
@@ -78,8 +78,8 @@ namespace SmartDayClient.Models
         public const int Accepted = 3;
         public const int InProgress = 4;
         public const int Awaiting = 41;
-
-
+        public const int SentHome = 6;
+        public const int Balanced = 99;
     }
 
     public static class ProjectStatus
@@ -88,6 +88,22 @@ namespace SmartDayClient.Models
         public const int Activated = 3;
         public const int Closed = 4;
         public static int Completed = 5;
+    }
+
+    public static class MaterialStatus
+    {
+        public const int Suggensted = 0;
+        public const int Used = 1;
+        public const int Exported = 2;
+        public static int Approved = 3;
+    }
+
+    public static class SalaryCodeStatus
+    {
+        public const int Suggensted = 0;
+        public const int Used = 1;
+        public const int Exported = 2;
+        public static int Approved = 3;
     }
 
 

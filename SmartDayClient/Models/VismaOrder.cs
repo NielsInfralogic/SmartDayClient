@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SmartDayClient.Models
 {
+    
     public class VismaOrder
     {
         public int CustomerNo { get; set; } = 0;
@@ -77,7 +78,7 @@ namespace SmartDayClient.Models
         public string CardNm { get; set; } = "";
         public string CardAc { get; set; } = "";
 
-        public int Status { get; set; } = 0;
+        public int StatusGr3 { get; set; } = 0;
 
         //public string SmartDayID { get; set; } = "";
 
@@ -88,19 +89,29 @@ namespace SmartDayClient.Models
         public string CreUsr { get; set; } = "";
 
 
-        public string R12 { get; set; } = "";
+        public string R12notused { get; set; } = "";
         public int R2 { get; set; } = 0;
 
         public int SelBuy { get; set; } = 0; // tekniker
+
+        public string FreeInf1Memo1 { get; set; } = "";
+        public string FreeInf1Memo2 { get; set; } = "";
+        public string FreeInf1Memo3 { get; set; } = "";
+
+        public string Reqno { get; set; } = "";
+
+        public int Gr8 { get; set; } = 1;
 
         public List<VismaOrderLine> OrderLines;
 
         public List<VismaAgreement> AgreementLines;
 
+        public List<string> R12List;
         public VismaOrder()
         {
             OrderLines = new List<VismaOrderLine>();
             AgreementLines = new List<VismaAgreement>();
+            R12List = new List<string>();
         }
 
     }

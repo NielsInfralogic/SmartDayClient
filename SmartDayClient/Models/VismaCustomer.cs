@@ -11,6 +11,8 @@ namespace SmartDayClient.Models
         public int CustomerNo { get; set; } = 0;
         public int ActorNo { get; set; } = 0;
 
+
+
         public string Name { get; set; } = string.Empty;
         public string AddressLine1 { get; set; } = string.Empty;
         public string AddressLine2 { get; set; } = string.Empty;
@@ -25,19 +27,28 @@ namespace SmartDayClient.Models
         public string CompanyNo { get; set; } = string.Empty;
         public string CountryCode { get; set; } = string.Empty;
 
+        public int CountryNumber { get; set; } = 46;
+
         public string YourRef { get; set; } = string.Empty;
 
         public int Group3 { get; set; } = 1;
-        public List<VismaActor> DeliveryAddressList { get; set; }
 
-        public List<VismaActor> ContactAddressList { get; set; }
+        public string Inf7 { get; set; } = string.Empty;
+
+        public string Memo { get; set; } = string.Empty;
+
+        public int Group1 { get; set; } = 0;
+        public List<VismaActor> DeliveryAddressList { get; set; }
+        public List<VismaActor> ContactList { get; set; }
+        public List<VismaActor> AddressList { get; set; }
 
 //        public int customerCategoryId { get; set; } = 0;
 
         public VismaCustomer()
         {
             DeliveryAddressList = new List<VismaActor>();
-            ContactAddressList = new List<VismaActor>();
+            ContactList = new List<VismaActor>();
+            AddressList = new List<VismaActor>();
         }
        
     }
@@ -56,5 +67,11 @@ namespace SmartDayClient.Models
         public string PostCode { get; set; } = string.Empty;
         public string PostalArea { get; set; } = string.Empty;
         public string CountryCode { get; set; } = string.Empty;
+        public int CountryNumber { get; set; } = 46;
+      
+        public string CompanyNumber { get; set; } = "";
+        public string Inf7  { get; set; } = string.Empty;
+
+        public string Memo { get; set; } = string.Empty;
     }
 }
