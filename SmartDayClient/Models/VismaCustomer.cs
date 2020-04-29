@@ -33,7 +33,9 @@ namespace SmartDayClient.Models
 
         public int Group3 { get; set; } = 1;
 
-        public string Inf7 { get; set; } = string.Empty;
+        public string SmartDayId { get; set; } = string.Empty;
+
+        public string SmartDaySiteId { get; set; } = string.Empty;
 
         public string Memo { get; set; } = string.Empty;
 
@@ -70,8 +72,8 @@ namespace SmartDayClient.Models
         public int CountryNumber { get; set; } = 46;
       
         public string CompanyNumber { get; set; } = "";
-        public string Inf7  { get; set; } = string.Empty;
-
+        public string SmartDayId { get; set; } = string.Empty;
+        public string SmartDaySiteId { get; set; } = string.Empty;
         public string Memo { get; set; } = string.Empty;
     }
 }

@@ -70,6 +70,7 @@
     <Compile Include="Models\VismaOrder.cs" />
     <Compile Include="Models\VismaProject.cs" />
     <Compile Include="Models\VismaServiceUnit.cs" />
+    <Compile Include="Models\VismaSite.cs" />
     <Compile Include="Models\VismaThing.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

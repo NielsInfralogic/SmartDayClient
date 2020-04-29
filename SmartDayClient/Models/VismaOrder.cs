@@ -24,7 +24,8 @@ namespace SmartDayClient.Models
         public string DeliveryAddress4 { get; set; } = "";
         public string DeliveryPostCode { get; set; } = "";
         public string DeliveryPostalArea { get; set; } = "";
-        public int DeliveryCountryNumber { get; set; } = 45;
+        public string DeliveryCountryCode { get; set; } = "SE";
+        
 
         // CustNo properties
         public string CompanyName { get; set; } = "";
@@ -35,7 +36,7 @@ namespace SmartDayClient.Models
         public string AddressLine4 { get; set; } = "";
         public string PostCode { get; set; } = "";
         public string PostalArea { get; set; } = "";
-        public int CountryNumber { get; set; } = 45;
+        public string CountryCode { get; set; } = "SE";
         public string Phone { get; set; } = "";
         public string Email { get; set; } = "";
 
@@ -106,12 +107,17 @@ namespace SmartDayClient.Models
 
         public List<VismaAgreement> AgreementLines;
 
-        public List<string> R12List;
+        public List<VismaOrderThing> R12List;
+
+        public VismaCustomer Customer { get; set; }
+
+        public VismaSite Site { get; set; }
         public VismaOrder()
         {
             OrderLines = new List<VismaOrderLine>();
             AgreementLines = new List<VismaAgreement>();
-            R12List = new List<string>();
+            R12List = new List<VismaOrderThing>();
+            Customer = new VismaCustomer();
         }
 
     }

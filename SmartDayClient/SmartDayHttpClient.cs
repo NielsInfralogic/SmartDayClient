@@ -1193,7 +1193,7 @@ namespace SmartDayClient
 
         public async Task<string> GetOrderDocumentDataAsync(string id, string documentID)
         {
-            Utils.WriteLog($"Requesting GetOrderDocumentDataAsync({id})");
+            Utils.WriteLog($"Requesting GetOrderDocumentDataAsync({id}/{documentID})");
             try
             {
                 HttpResponseMessage response = await client.GetAsync($"orders/{id}/documents/{documentID}/data").ConfigureAwait(false);
@@ -1201,7 +1201,7 @@ namespace SmartDayClient
                 if (response.IsSuccessStatusCode)
                 {
                     string str = await response.Content.ReadAsStringAsync();
-                    Utils.WriteLog(str);
+                 //   Utils.WriteLog(str);
                     var settings = new JsonSerializerSettings
                     {
                         NullValueHandling = NullValueHandling.Ignore,
@@ -1250,7 +1250,7 @@ namespace SmartDayClient
             {
                 string postBody = JsonConvert.SerializeObject(orderdocuments);
 
-                Utils.WriteLog(postBody);
+            //    Utils.WriteLog(postBody);
 
                 HttpResponseMessage response = await client.PostAsync($"orders/{id}/documents", new StringContent(postBody, Encoding.UTF8, "application/json")).ConfigureAwait(false);
                 Utils.WriteLog("Response: " + response.StatusCode.ToString());
@@ -1617,10 +1617,9 @@ namespace SmartDayClient
             Utils.WriteLog($"Requesting GetSiteAsync({customerId})");
             try
             {
-                string queryString = "";
-               
-                if (customerId != "")
-                    queryString = "?customerId=" + customerId;
+                string queryString = "?customerId=" + customerId;
+
+                    
 
                 HttpResponseMessage response = await client.GetAsync($"sites/{queryString}").ConfigureAwait(false);
                 Utils.WriteLog("Response: " + response.StatusCode.ToString());

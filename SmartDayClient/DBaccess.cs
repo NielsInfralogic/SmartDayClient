@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SmartDayClient.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -13,8 +14,8 @@ namespace SmartDayClient
     {
         readonly SqlConnection connection;
 
-        public static string queryGetCustomers = "SELECT Actor.ActNo, Actor.CustNo,Actor.Nm,Actor.Ad1,Actor.Ad2,Actor.Ad3,Actor.PNo,Actor.PArea,Actor.Ctry,ISNULL(Ctry.ISO,'SE'),Actor.Phone,Actor.MobPh,Actor.MailAd,Actor.BsNo,Actor.YrRef,Actor.Gr3,Actor.Inf7,Actor.NoteNm, Actor.Gr FROM Actor " +
-                        "LEFT OUTER JOIN Ctry ON Actor.Ctry = Ctry.CtryNo WHERE Actor.DelToAct=0 AND Actor.CustNo>0 AND Actor.Gr3<>10  ";
+        public static string queryGetCustomers = "SELECT Actor.ActNo, Actor.CustNo,Actor.Nm,Actor.Ad1,Actor.Ad2,Actor.Ad3,Actor.PNo,Actor.PArea,Actor.Ctry,ISNULL(Ctry.ISO,'SE'),Actor.Phone,Actor.MobPh,Actor.MailAd,Actor.BsNo,Actor.YrRef,Actor.Gr3,Actor.Inf7,Actor.NoteNm, Actor.Gr,Actor.Inf6 FROM Actor " +
+                        "LEFT OUTER JOIN Ctry ON Actor.Ctry = Ctry.CtryNo WHERE Actor.DelToAct=0 AND Actor.CustNo>0  ";
 
         public static string queryGetCustomerContact = "SELECT Actor.ActNo,Actor.Nm,Actor.Ad1,Actor.Ad2,Actor.Ad3,Actor.PNo,Actor.PArea,ISNULL(Ctry.ISO,'SE'),Actor.Phone,Actor.MobPh,Actor.MailAd,Actor.BsNo FROM Actor " +
                         "LEFT OUTER JOIN Ctry ON Actor.Ctry = Ctry.CtryNo " +
@@ -26,16 +27,19 @@ namespace SmartDayClient
 
         public static string queryGetCustomerAddresses = "SELECT Actor.ActNo, Actor.Nm,Actor.Ad1,Actor.Ad2,Actor.Ad3,Actor.PNo,Actor.PArea,Actor.Ctry,ISNULL(Ctry.ISO,'SE'),Actor.Phone,Actor.MobPh,Actor.MailAd,Actor.BsNo,Actor.Inf7,Actor.NoteNm FROM Actor " +
                         "LEFT OUTER JOIN Ctry ON Actor.Ctry = Ctry.CtryNo " +
-                       "WHERE Actor.Gr3=10 AND Actor.CustNo=#1#";
+                       "WHERE  Actor.CustNo=#1#";
 
         public static string queryGetCustomerAddressFromActNo = "SELECT Actor.ActNo, Actor.Nm,Actor.Ad1,Actor.Ad2,Actor.Ad3,Actor.PNo,Actor.PArea,Actor.Ctry,ISNULL(Ctry.ISO,'SE'),Actor.Phone,Actor.MobPh,Actor.MailAd,Actor.BsNo,Actor.Inf7,Actor.NoteNm FROM Actor " +
                         "LEFT OUTER JOIN Ctry ON Actor.Ctry = Ctry.CtryNo " +
-                       "WHERE Actor.ActNo=#1# AND Actor.Gr3=10 ";
+                       "WHERE Actor.ActNo=#1#  ";
 
-        public static string queryGetOrders = "SELECT DISTINCT Ord.Gr12, Ord.OrdDt, Ord.OrdNo, Ord.Nm, Ord.Ad1, Ord.Ad2, Ord.Ad3, Ord.PNo, Ord.PArea, " +
-                       "Ord.DelNm, Ord.DelAd1, Ord.DelAd2, Ord.DelAd3, Ord.DelPNo, Ord.DelPArea, Ord.DelTrm, Ord.DelDt, Ord.Inf, " +
+        public static string queryGetOrders = "SELECT DISTINCT Ord.Gr12, Ord.OrdDt, Ord.OrdNo, Ord.Nm, Ord.Ad1, Ord.Ad2, Ord.Ad3, Ord.PNo, Ord.PArea, ISNULL(C1.ISO,'SE'), " +
+                       "Ord.DelNm, Ord.DelAd1, Ord.DelAd2, Ord.DelAd3, Ord.DelPNo, Ord.DelPArea, ISNULL(C2.ISO,'SE'), Ord.DelTrm, Ord.DelDt, Ord.Inf, " +
                        "Ord.Inf2, Ord.Inf3, Ord.Inf4,Ord.Inf5, Ord.NoteNm, Ord.YrRef, Ord.OurRef,Ord.Gr3,Ord.CsOrdNo,Ord.CustNo,Ord.EmpNo,Ord.R7,Ord.Gr,Ord.CreUsr,Ord.R12,Ord.R2,Ord.SelBuy,Ord.Reqno,Ord.Gr8 " +
-                       "FROM Ord WITH (NOLOCK) WHERE Ord.Gr3=10 AND Ord.TrTp=1  AND Ord.CustNo>0"; // AND Ord.R2 > 0
+                       "FROM Ord WITH (NOLOCK) " +
+                       "LEFT OUTER JOIN Ctry C1 ON Ord.Ctry = C1.CtryNo " +
+                       "LEFT OUTER JOIN Ctry C2 ON Ord.DelCtry = C2.CtryNo " +
+                       "WHERE Ord.Gr3=10 AND Ord.TrTp=1  AND Ord.CustNo>0"; // AND Ord.R2 > 0
 
         public static string queryGetOrderLinesByOrdNo =
                       "SELECT DISTINCT OrdLn.LnNo, OrdLn.ProdNo, OrdLn.NoInvoAb, OrdLn.Price, OrdLn.Descr,OrdLn.WebPg,OrdLn.R7 " +
@@ -51,11 +55,21 @@ namespace SmartDayClient
 
 
         public static string queryGetThings =
-                    "SELECT DISTINCT R12.RNo, R12.Nm, ISNULL(Actor.Phone,''),R12.Inf7,R12.Ad4,R12.R3,ISNULL(R3.R9,''),R12.NoteNm,R12.Dt3,R12.Dt4,R12.Dt1,R12.Inf8,R12.CustNo,R12.Gr3,R12.Inf5,R12.Inf4,R12.Inf,R12.PictFNm,ISNULL(R8.Nm,''),R12.Ad1,R12.Ad2,R12.Ad3,R12.PNo,R12.PArea,R12.Ctry,R12.MailAd,R12.ActNo2 FROM R12 " +
+                    "SELECT DISTINCT R12.RNo, R12.Nm, ISNULL(Actor.Phone,''),R12.Inf7,R12.Ad4,R12.R3,ISNULL(R3.R9,''),R12.NoteNm,R12.Dt3,R12.Dt4,R12.Dt1,R12.Inf8,R12.CustNo,R12.Gr3,R12.Inf5,R12.Inf4,R12.Inf,R12.PictFNm,ISNULL(R8.Nm,''),R12.Ad1,R12.Ad2,R12.Ad3,R12.PNo,R12.PArea,R12.Ctry,R12.MailAd,R12.ActNo2,ISNULL(Ctry.ISO,'SE') FROM R12 " +
                     "LEFT OUTER JOIN Actor ON Actor.CustNo=R12.CustNo " +
                     "LEFT OUTER JOIN R3 ON R3.RNo= R12.R3 " +
                     "LEFT OUTER JOIN R8 ON R8.RNo= R12.R8 " +
-                    "WHERE (R12.Gr3=1 OR R12.Gr3=5) ";
+                    "LEFT OUTER JOIN Ctry ON R12.Ctry = Ctry.CtryNo " +
+                     "WHERE (R12.Gr3=1 OR R12.Gr3=5) ";
+
+
+        public static string queryGetSpecificThing =
+                   "SELECT DISTINCT R12.RNo, R12.Nm, ISNULL(Actor.Phone,''),R12.Inf7,R12.Ad4,R12.R3,ISNULL(R3.R9,''),R12.NoteNm,R12.Dt3,R12.Dt4,R12.Dt1,R12.Inf8,R12.CustNo,R12.Gr3,R12.Inf5,R12.Inf4,R12.Inf,R12.PictFNm,ISNULL(R8.Nm,''),R12.Ad1,R12.Ad2,R12.Ad3,R12.PNo,R12.PArea,R12.Ctry,R12.MailAd,R12.ActNo2,ISNULL(Ctry.ISO,'SE') FROM R12 " +
+                   "LEFT OUTER JOIN Actor ON Actor.CustNo=R12.CustNo " +
+                   "LEFT OUTER JOIN R3 ON R3.RNo= R12.R3 " +
+                   "LEFT OUTER JOIN R8 ON R8.RNo= R12.R8 " +
+                    "LEFT OUTER JOIN Ctry ON R12.Ctry = Ctry.CtryNo " +
+                    "WHERE R12.RNo='#1#' ";
 
 
 
@@ -246,7 +260,7 @@ namespace SmartDayClient
                         ServiceUnitGroupRno = reader.GetString(idx++).Trim(),  // Anlægsgruppe R8
                         ServiceUnitTypeName = reader.GetString(idx++).Trim(),
                         ServiceUnitQuantity = reader.GetInt32(idx++),
-                        Inf7SmartDayProjectID = reader.GetString(idx++).Trim(),
+                        SmartDayProjectID = reader.GetString(idx++).Trim(),
                         ServiceUnitRno = reader.GetString(idx++).Trim(),
 
                     });
@@ -345,15 +359,16 @@ namespace SmartDayClient
         }
 
 
-        public bool GetThingsForOrder(int ordNo, ref List<string> R12List, out string errmsg)
+
+        public bool GetThingsForOrder(int ordNo, ref List<VismaOrderThing> R12List, out string errmsg)
         {
             errmsg = "";
             R12List.Clear();
             if (ordNo <= 0)
                 return true;
 
-            string sql = "SELECT DISTINCT R12.RNo FROM R12 " +
-                "INNER JOIN FreeInf1 ON FreeInf1.R12=R12.RNo AND LTRIM(RTRIM(FreeInf1.R12))<>'' " +
+            string sql = "SELECT DISTINCT R12.RNo,FreeInf1.Txt3 FROM R12 " +
+                "INNER JOIN FreeInf1 ON FreeInf1.R12=R12.RNo AND LTRIM(RTRIM(FreeInf1.R12))<>'' AND FreeInf1.InfCatNo=204 " +
                 $"AND FreeInf1.OrdNo={ordNo}";
 
             SqlCommand command = new SqlCommand(sql, connection)
@@ -375,8 +390,9 @@ namespace SmartDayClient
                 {
                     int idx = 0;
                     string rNo = reader.GetString(idx++).Trim(); // =R12.Rno
+                    string smartDayThingId = reader.GetString(idx++).Trim(); // =R12.Rno
                     if (rNo != "")
-                        R12List.Add(rNo);
+                        R12List.Add(new VismaOrderThing() { RNo = rNo, SmartDayThingId = smartDayThingId });
                 }
 
             }
@@ -398,7 +414,210 @@ namespace SmartDayClient
             return true;
         }
 
-    
+
+    /*    public bool GetDocumentsForOrder(int ordNo, ref List<VismaOrderThing> R12List, out string errmsg)
+        {
+            errmsg = "";
+     
+            if (ordNo <= 0)
+                return true;
+
+
+            string sql = $"SELECT Doc.FileNm,DocLink.R12 FROM Doc INNER JOIN DocLink ON DocLink.DocNo=Doc.DocNo AND DocLink.VerNo=Doc.VerNo WHERE Doc.DocGr=1 AND DocLink.OrdNo={ordNo} AND Doc.FileNm <> ''";
+
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            SqlDataReader reader = null;
+
+            try
+            {
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string docFile = reader.GetString(0).Trim();
+                    string rNo = reader.GetString(1).Trim(); 
+                    foreach(VismaOrderThing r12 in R12List)
+                    {
+                        if (docFile != "" && (rNo == "" || r12.RNo == rNo))
+                            r12.DocFileName.Add(docFile);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                errmsg = ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+
+            return true;
+        }
+        */
+        public bool RegisterImageSmartdayId(int PK, string smartDayId, out string errmsg)
+        {
+            errmsg = "";
+            if (PK <= 0)
+                return true;
+
+            string sql = $"UPDATE FreeInf1 SET Txt4='{smartDayId}' WHERE PK={PK}";
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            try
+            {
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                errmsg = ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+            return true;
+
+        }
+
+        public bool GetDocumentFromSmartDayId(int ordNo, string rNo, string smartDayId, ref string fileName, ref int PK, out string errmsg)
+        {
+            errmsg = "";
+            smartDayId = "";
+            if (ordNo <= 0)
+                return true;
+
+            string sql = $"SELECT FreeInf1.WebPg,FreeInf1.PK FROM FreeInf1 WHERE FreeInf1.InfCatNo=205 AND FreeInf1.OrdNo={ordNo} AND Txt4='{smartDayId}'";
+            if (rNo != "")
+                sql += $" AND FreeInf1.R12='{rNo}'";
+
+            Utils.WriteLog(sql);
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            SqlDataReader reader = null;
+
+            try
+            {
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    fileName = reader.GetString(0).Trim();
+                    PK = reader.GetInt32(1);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                errmsg = ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+
+            return true;
+        }
+
+
+        public bool GetImagesAnDocumentsForOrder(int ordNo, ref List<VismaOrderThing> R12List, out string errmsg)
+        {
+            errmsg = "";
+ 
+            if (ordNo <= 0)
+                return true;
+
+            string sql = $"SELECT FreeInf1.WebPg, FreeInf1.R12,FreeInf1.PK FROM FreeInf1 WHERE FreeInf1.InfCatNo=205 AND FreeInf1.OrdNo={ordNo}";
+
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            SqlDataReader reader = null;
+
+            try
+            {
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string docFile = reader.GetString(0).Trim();
+                    string rNo = reader.GetString(1).Trim();
+                    int PK = reader.GetInt32(2);
+
+                    foreach (VismaOrderThing r12 in R12List)
+                    {
+                        if (docFile != "" && (rNo == "" || r12.RNo == rNo))
+                        {
+                            r12.Documents.Add(new VismaDocument() { DocFileName = docFile, PK = PK });
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                errmsg = ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (reader != null)
+                    reader.Close();
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+
+            return true;
+        }
+
+
         public bool GetThings(string specificRno, ref List<Models.VismaThing> things, DateTime lastSyncTime, out string errmsg)
         {
             errmsg = "";
@@ -406,7 +625,7 @@ namespace SmartDayClient
            
             string sql = queryGetThings;
             if (specificRno != "")
-                sql += $" AND R12.RNo='{specificRno}' ";
+                sql = queryGetSpecificThing.Replace("#1#", specificRno); 
 
             if (lastSyncTime != DateTime.MinValue)
             {
@@ -456,7 +675,7 @@ namespace SmartDayClient
                         Dt4 = reader.GetInt32(idx++),
                         Dt1 = reader.GetInt32(idx++),
                         
-                        Inf8 = reader.GetString(idx++).Trim(),
+                        SmartDayId = reader.GetString(idx++).Trim(),
                         CustNo = reader.GetInt32(idx++),
                         Gr3 = reader.GetInt32(idx++),
                         
@@ -464,7 +683,7 @@ namespace SmartDayClient
                         Inf4 = reader.GetString(idx++).Trim(),
                         Inf = reader.GetString(idx++).Trim(),    // Inf
 
-                        PictFNm = reader.GetString(idx++).Trim(), //PictFNm
+                        SmartDaySiteId = reader.GetString(idx++).Trim(), //PictFNm
                         R8Nm = reader.GetString(idx++).Trim(), //R8.Nm
                         Ad1 = reader.GetString(idx++).Trim(), 
                         Ad2= reader.GetString(idx++).Trim(),
@@ -474,6 +693,7 @@ namespace SmartDayClient
                         Ctry = reader.GetInt32(idx++),
                         MailAd = reader.GetString(idx++).Trim(),
                         ActNoAddress = reader.GetInt32(idx++),
+                        Country = reader.GetString(idx++).Trim()
 
                     });
             
@@ -524,7 +744,7 @@ namespace SmartDayClient
             int chTm = DateTime.Now.Hour * 100 + DateTime.Now.Minute;
             string sql = "INSERT INTO R12 (Rno,Nm,Ad1,Ad2,Ad3,Ad4,PNo,PArea,Ctry,CustNo,Gr3,G11,G12,Inf,Inf4,Inf5,Inf7,Inf8,PictFNm,NoteNm,Dt1,Dt3,Dt4,ChDt,ChTm,CreDt,CreTm,CreUsr) " +
                         " VALUES " +
-                        $" ('{vthing.RNo}','{vthing.Name}','{vthing.Ad1}','{vthing.Ad2}','{vthing.Ad3}','{vthing.Ad4}','{vthing.PNo}','{vthing.PArea}',{vthing.Ctry},{vthing.CustNo},{vthing.Gr3},{gr11},{gr12},'{vthing.Inf}','{vthing.Inf4}','{vthing.Inf5}','{vthing.Inf7}','{vthing.Inf8}','{vthing.PictFNm}','{memoFile}',{vthing.Dt1},{vthing.Dt3},{vthing.Dt4},{chDt},{chTm},{chDt},{chTm},'system')";
+                        $" ('{vthing.RNo}','{vthing.Name}','{vthing.Ad1}','{vthing.Ad2}','{vthing.Ad3}','{vthing.Ad4}','{vthing.PNo}','{vthing.PArea}',{vthing.Ctry},{vthing.CustNo},{vthing.Gr3},{gr11},{gr12},'{vthing.Inf}','{vthing.Inf4}','{vthing.Inf5}','{vthing.Inf7}','{vthing.SmartDayId}','{vthing.SmartDaySiteId}','{memoFile}',{vthing.Dt1},{vthing.Dt3},{vthing.Dt4},{chDt},{chTm},{chDt},{chTm},'system')";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -562,7 +782,7 @@ namespace SmartDayClient
             smartDayId = "";
             errmsg = "";
 
-            string sql = $"SELECT Inf7 FROM Actor WHERE CustNo={custNo} AND Gr3<>10";
+            string sql = $"SELECT Inf7 FROM Actor WHERE CustNo={custNo} ";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -642,9 +862,11 @@ namespace SmartDayClient
                     customer.CompanyNo = reader.GetString(idx++).Trim();
                     customer.YourRef = reader.GetString(idx++).Trim();
                     customer.Group3 = reader.GetInt32(idx++);
-                    customer.Inf7 = reader.GetString(idx++).Trim();
+                    customer.SmartDayId = reader.GetString(idx++).Trim();
                     customer.Memo = Utils.ReadMemoFile(reader.GetString(idx++).Trim());
                     customer.Group1 = reader.GetInt32(idx++);
+                    customer.SmartDaySiteId = reader.GetString(idx++).Trim();
+
                 }
 
             }
@@ -670,6 +892,30 @@ namespace SmartDayClient
             foreach (Models.VismaActor actor in actors)
                 customer.ContactList.Add(actor);
 
+            if (customer.ContactList.Count == 0)
+            {
+                Models.VismaActor defaultContact = new Models.VismaActor()
+                {
+                    ActorNo = customer.ActorNo,
+                    AddressLine1 = customer.AddressLine1,
+                    AddressLine2 = customer.AddressLine2,
+                    AddressLine3 = customer.AddressLine3,
+                    AddressLine4 = customer.AddressLine4,
+                    PostCode = customer.PostCode,
+                    PostalArea = customer.PostalArea,
+                    Name = customer.Name,
+                    CountryNumber = customer.CountryNumber,
+                    CountryCode = customer.CountryCode,
+                    Phone = customer.Phone,
+                    Mobile = customer.Mobile,
+                    EmailAddress = customer.EmailAddress,
+                    SmartDayId = customer.SmartDayId,
+                    SmartDaySiteId = customer.SmartDaySiteId,
+                    Memo = customer.Memo
+                };
+                customer.ContactList.Add(defaultContact);
+            }
+
             List<Models.VismaActor> addresses = new List<Models.VismaActor>();
             if (GetCustomerAddresses(customer.CustomerNo, ref addresses, out errmsg) == false)
                 return false;
@@ -679,11 +925,13 @@ namespace SmartDayClient
 
             if (customer.AddressList.Count == 0)
             {
-                Models.VismaActor defatulAddress = new Models.VismaActor()
+                Models.VismaActor defaultAddress = new Models.VismaActor()
                 {
+                    ActorNo = customer.ActorNo,
                     AddressLine1 = customer.AddressLine1,
                     AddressLine2 = customer.AddressLine2,
                     AddressLine3 = customer.AddressLine3,
+                    AddressLine4 = customer.AddressLine4,
                     PostCode = customer.PostCode,
                     PostalArea = customer.PostalArea,
                     Name = customer.Name,
@@ -692,8 +940,12 @@ namespace SmartDayClient
                     Phone = customer.Phone,
                     Mobile = customer.Mobile,
                     EmailAddress = customer.EmailAddress,
+                    SmartDayId = customer.SmartDayId,
+                    SmartDaySiteId = customer.SmartDaySiteId,
+                    Memo = customer.Memo
 
                 };
+                customer.AddressList.Add(defaultAddress);
             }
             return true;
         }
@@ -803,7 +1055,7 @@ namespace SmartDayClient
                         CompanyNo = reader.GetString(idx++).Trim(),
                         YourRef = reader.GetString(idx++).Trim(),
                         Group3 = reader.GetInt32(idx++),
-                        Inf7 = reader.GetString(idx++),
+                        SmartDayId = reader.GetString(idx++),
                         Memo = Utils.ReadMemoFile(reader.GetString(idx++).Trim()),
                         Group1 = reader.GetInt32(idx++),
                     });
@@ -1049,7 +1301,7 @@ namespace SmartDayClient
                         Mobile = reader.GetString(idx++).Trim(),
                         EmailAddress = reader.GetString(idx++).Trim(),
                         CompanyNumber = reader.GetString(idx++).Trim(),
-                        Inf7 = reader.GetString(idx++).Trim(),
+                        SmartDayId = reader.GetString(idx++).Trim(),
                         Memo = Utils.ReadMemoFile(reader.GetString(idx++).Trim())
                     });
                 }
@@ -1112,7 +1364,7 @@ namespace SmartDayClient
                     address.Mobile = reader.GetString(idx++).Trim();
                     address.EmailAddress = reader.GetString(idx++).Trim();
                     address.CompanyNumber = reader.GetString(idx++).Trim();
-                    address.Inf7 = reader.GetString(idx++).Trim();
+                    address.SmartDayId = reader.GetString(idx++).Trim();
                     address.Memo = Utils.ReadMemoFile(reader.GetString(idx++).Trim());
                 
                 }
@@ -1388,8 +1640,6 @@ namespace SmartDayClient
 
         }
 
-
-
         public bool GetNewOrders(ref List<Models.VismaOrder> orders, out string errmsg)
         {
             errmsg = "";
@@ -1426,13 +1676,14 @@ namespace SmartDayClient
                         AddressLine3 = reader.GetString(fld++),
                         PostCode = reader.GetString(fld++),
                         PostalArea = reader.GetString(fld++),
-
+                        CountryCode = reader.GetString(fld++),
                         DeliveryName = reader.GetString(fld++),
                         DeliveryAddress1 = reader.GetString(fld++),
                         DeliveryAddress2 = reader.GetString(fld++),
                         DeliveryAddress3 = reader.GetString(fld++),
                         DeliveryPostCode = reader.GetString(fld++),
                         DeliveryPostalArea = reader.GetString(fld++),
+                        DeliveryCountryCode = reader.GetString(fld++),
 
                         DeliveryMethod = reader.GetInt32(fld++),
 
@@ -1481,13 +1732,14 @@ namespace SmartDayClient
 
             foreach (Models.VismaOrder order in orders)
             {
-                List<string> thingsList = new List<string>();
+                List<VismaOrderThing> thingsList = new List<VismaOrderThing>();
                 if (GetThingsForOrder(order.OrderNo, ref thingsList, out errmsg) == false)
                     return false;
+
+                if (GetImagesAnDocumentsForOrder(order.OrderNo, ref thingsList, out errmsg) == false)
+                    return false;
+
                 order.R12List = thingsList;
-                if (order.R12notused != "")
-                    if (order.R12List.Contains(order.R12notused) == false)
-                        order.R12List.Add(order.R12notused);
 
                 string note1 = "", note2 = "", note3 = "";
                 if (GetOrderNotes(order.OrderNo, ref note1, ref note2, ref note3, out errmsg) == false)
@@ -1498,18 +1750,70 @@ namespace SmartDayClient
 
                 Utils.WriteLog("DEBUG: Note2 " + order.FreeInf1Memo3);
 
-
                 List<Models.VismaOrderLine> lines = new List<Models.VismaOrderLine>();
-               /* if (GetOrderLines(order.OrderNo, ref lines, out errmsg) == false)
+                VismaCustomer customer = new VismaCustomer();
+                if (GetCustomer(order.CustomerNo, ref customer, out errmsg) == false)
                     return false;
-                foreach (Models.VismaOrderLine line in lines)
-                    order.OrderLines.Add(line);
 
-                List<Models.VismaAgreement> agreements = new List<Models.VismaAgreement>();
-                if (GetOrderAgreements(order.OrderNo, ref agreements, out errmsg) == false)
-                    return false;
-                foreach (Models.VismaAgreement agreement in agreements)
-                    order.AgreementLines.Add(agreement);*/
+                if (order.Name != "" && (order.AddressLine1 != "" || order.AddressLine2 != "") && order.PostalArea != "" && order.PostCode != "")
+                {
+                    customer.Name = order.Name;
+                    customer.AddressLine1 = order.AddressLine1;
+                    customer.AddressLine2 = order.AddressLine2;
+                    customer.AddressLine3 = order.AddressLine3; 
+                    customer.AddressLine4 = order.AddressLine4;
+                    customer.PostCode = order.PostCode;
+                    customer.PostalArea = order.PostalArea;
+                    customer.CountryCode = order.CountryCode;
+                }
+
+                order.Customer = customer;
+
+                // Defatul site address as customer's deliver address 1
+                VismaSite site = new VismaSite();
+                if (customer.DeliveryAddressList.Count > 0)
+                {
+                    site.AddressLine1 = customer.DeliveryAddressList[0].AddressLine1;
+                    site.AddressLine2 = customer.DeliveryAddressList[0].AddressLine2;
+                    site.AddressLine3 = customer.DeliveryAddressList[0].AddressLine3;
+                    site.AddressLine4 = customer.DeliveryAddressList[0].AddressLine4;
+                    site.Name = customer.DeliveryAddressList[0].Name != "" ? customer.DeliveryAddressList[0].Name : customer.Name;
+                    site.PostalArea = customer.DeliveryAddressList[0].PostalArea;
+                    site.PostCode = customer.DeliveryAddressList[0].PostCode;
+                    site.CountryCode = customer.DeliveryAddressList[0].CountryCode != "" ? customer.DeliveryAddressList[0].CountryCode : customer.CountryCode;
+                    site.CompanyNo = customer.CompanyNo;
+                    site.EmailAddress = customer.DeliveryAddressList[0].EmailAddress != "" ? customer.DeliveryAddressList[0].EmailAddress : customer.EmailAddress;
+                    site.Phone = customer.DeliveryAddressList[0].Phone != "" ? customer.DeliveryAddressList[0].Phone : customer.Phone;
+                    site.Mobile = customer.DeliveryAddressList[0].Mobile != "" ? customer.DeliveryAddressList[0].Mobile : customer.Mobile;
+                    site.SmartDayId = customer.SmartDaySiteId != "" ? customer.SmartDaySiteId : customer.SmartDayId;
+                }
+                order.Site = site;
+
+                // In case of delivery information avaiable on order - use this as Site
+
+                if (order.DeliveryName != "" && (order.DeliveryAddress1 != "" || order.DeliveryAddress2 != "") && order.DeliveryPostalArea != "" && order.DeliveryPostCode != "")
+
+                {
+                    site.Name = order.DeliveryName;
+                    site.AddressLine1 = order.DeliveryAddress1;
+                    site.AddressLine2 = order.DeliveryAddress2;
+                    site.AddressLine3 = order.DeliveryAddress3;
+                    site.AddressLine4 = order.DeliveryAddress4;
+                    site.PostCode = order.DeliveryPostCode;
+                    site.PostalArea = order.DeliveryPostalArea;
+                    site.CountryCode = order.DeliveryCountryCode;
+                }
+
+                /* if (GetOrderLines(order.OrderNo, ref lines, out errmsg) == false)
+                     return false;
+                 foreach (Models.VismaOrderLine line in lines)
+                     order.OrderLines.Add(line);
+
+                 List<Models.VismaAgreement> agreements = new List<Models.VismaAgreement>();
+                 if (GetOrderAgreements(order.OrderNo, ref agreements, out errmsg) == false)
+                     return false;
+                 foreach (Models.VismaAgreement agreement in agreements)
+                     order.AgreementLines.Add(agreement);*/
 
             }
 
@@ -1560,6 +1864,46 @@ namespace SmartDayClient
             }
             else
                  sql = $"UPDATE FreeInf1 Set NoteNm='{memoPath}' WHERE InfCatNo={infCatNo} AND OrdNo={ordNo}";
+
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            try
+            {
+
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                errmsg = "GetOrderLines() -" + ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+
+            return true;
+        }
+
+
+
+        public bool InsertFreeImage(int PK, int ordNo, string comment,  string imagePath, out string errmsg)
+        {
+            errmsg = "";
+            int infCatNo = 206;
+            string sql = $"INSERT INTO FreeInf1 (PK,InfCatNo,OrdNo,WebPg,Txt1) VALUES ({PK},{infCatNo},{ordNo},'{imagePath}','{comment}')";
+ 
+            Utils.WriteLog(sql);
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -1747,7 +2091,7 @@ namespace SmartDayClient
                         "LEFT OUTER JOIN FreeInf1 F1 ON F1.InfCatNo = 201 AND F1.OrdNo = Ord.OrdNo " +
                         "LEFT OUTER JOIN FreeInf1 F2 ON F2.InfCatNo = 202 AND F2.OrdNo = Ord.OrdNo " +
                         "LEFT OUTER JOIN FreeInf1 F3 ON F3.InfCatNo = 203 AND F3.OrdNo = Ord.OrdNo " +
-                        $"WHERE ORd.OrdNo = {ordNo}";
+                        $"WHERE Ord.OrdNo = {ordNo}";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -1921,11 +2265,11 @@ namespace SmartDayClient
             return true;
         }
 
-        public bool UpdateOrderStatus(int ordNo, int status, out string errmsg)
+        public bool UpdateOrderStatus(int ordNo, string rNo, int status, out string errmsg)
         {
             errmsg = "";
 
-            string sql = $"UPDATE Ord Set Gr3={status} WHERE OrdNo={ordNo}";
+            string sql = $"UPDATE FreeInf1 Set Gr3={status} WHERE OrdNo={ordNo} AND InfCatNo=204 AND R12='{rNo}'";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -1961,43 +2305,7 @@ namespace SmartDayClient
         {
             errmsg = "";
 
-            string sql = $"UPDATE Ord Set Gr5={status} WHERE OrdNo={ordNo}";
-
-            SqlCommand command = new SqlCommand(sql, connection)
-            {
-                CommandType = CommandType.Text,
-                CommandTimeout = 600
-            };
-
-            try
-            {
-
-                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
-                    connection.Open();
-
-                command.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                errmsg = "GetOrderLines() -" + ex.Message;
-
-                return false;
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
-                    connection.Close();
-                command.Dispose();
-            }
-
-            return true;
-        }
-
-        public bool UpdateProjectStatusOld(int rNo, int status, out string errmsg)
-        {
-            errmsg = "";
-
-            string sql = $"UPDATE R2 Set Gr11={status} WHERE RNo={rNo}";
+            string sql = $"UPDATE Ord Set Gr3={status} WHERE OrdNo={ordNo}";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -2065,42 +2373,7 @@ namespace SmartDayClient
 
         }
 
-        public bool RegisterProjectSmartdayIDOLD(int rno, string smartDayId,out string errmsg)
-        {
-            errmsg = "";
-
-            string sql = $"UPDATE R2 Set Inf7='{smartDayId}' WHERE Rno={rno}";
-
-            SqlCommand command = new SqlCommand(sql, connection)
-            {
-                CommandType = CommandType.Text,
-                CommandTimeout = 600
-            };
-
-            try
-            {
-
-                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
-                    connection.Open();
-
-                command.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                errmsg = "RegisterProjectSmartdayID() -" + ex.Message;
-
-                return false;
-            }
-            finally
-            {
-                if (connection.State == ConnectionState.Open)
-                    connection.Close();
-                command.Dispose();
-            }
-
-            return true;
-        }
-
+    
         public bool RegisterProjectSmartdayID(int ordNo, string smartDayId, out string errmsg)
         {
             errmsg = "";
@@ -2138,11 +2411,12 @@ namespace SmartDayClient
         }
 
 
-        public bool RegisterOrderSmartdayID(int ordNo, string smartDayId, out string errmsg)
+        public bool RegisterOrderSmartdayID(int ordNo, string rNo, string smartDayId, out string errmsg)
         {
             errmsg = "";
 
-            string sql = $"UPDATE Ord Set CsOrdNo='{smartDayId}' WHERE OrdNo={ordNo}";
+            //   string sql = $"UPDATE Ord Set CsOrdNo='{smartDayId}' WHERE OrdNo={ordNo}";
+            string sql = $"UPDATE FreeInf1 SET Txt4='{smartDayId}' WHERE OrdNo={ordNo} AND R12='{rNo}' AND InfCatNo=204";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -2174,7 +2448,8 @@ namespace SmartDayClient
             return true;
         }
 
-        public bool RegisterMaterialSmartdayID(int ordNo, int lineNo, string smartDayId, out string errmsg)
+
+         public bool RegisterMaterialSmartdayID(int ordNo, int lineNo, string smartDayId, out string errmsg)
         {
             errmsg = "";
 
@@ -2296,7 +2571,7 @@ namespace SmartDayClient
         {
             errmsg = "";
 
-            string sql = $"UPDATE Actor Set Inf7='{smartDayId}' WHERE Gr3=10 AND ActNo ={actNo}";
+            string sql = $"UPDATE Actor Set Inf6='{smartDayId}' WHERE ActNo = {actNo} AND CustNo<>0";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -2327,6 +2602,44 @@ namespace SmartDayClient
 
             return true;
         }
+
+
+        public bool RegisterSiteSmartdayIDToThing(string rNo, string smartDayId, out string errmsg)
+        {
+            errmsg = "";
+
+            string sql = $"UPDATE R12 Set PictFNm='{smartDayId}' WHERE Rno='{rNo}'";
+
+            SqlCommand command = new SqlCommand(sql, connection)
+            {
+                CommandType = CommandType.Text,
+                CommandTimeout = 600
+            };
+
+            try
+            {
+
+                if (connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
+                    connection.Open();
+
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                errmsg = "RegisterSiteSmartdayID() -" + ex.Message;
+
+                return false;
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Open)
+                    connection.Close();
+                command.Dispose();
+            }
+
+            return true;
+        }
+
 
         public bool UpdateProductStatus(string prodNo, int status, out string errmsg)
         {
@@ -2561,12 +2874,13 @@ namespace SmartDayClient
             return true;
         }
 
-        public bool GetThingSmartdayID(string rno, ref string smartdayID, out string errmsg)
+        public bool GetThingSmartdayID(string rno, ref string smartdayID, ref string smartdayThingSiteID, out string errmsg)
         {
             smartdayID = "";
+            smartdayThingSiteID = "";
             errmsg = "";
 
-            string sql = $"SELECT TOP 1 Inf8 FROM R12 WHERE RNo='{rno}'";
+            string sql = $"SELECT TOP 1 Inf8,PictFNm FROM R12 WHERE RNo='{rno}'";
 
             SqlCommand command = new SqlCommand(sql, connection)
             {
@@ -2589,6 +2903,7 @@ namespace SmartDayClient
                 if (reader.Read())
                 {
                     smartdayID = reader.GetString(0).Trim();
+                    smartdayThingSiteID = reader.GetString(1).Trim();
 
                 }
             }
@@ -2611,13 +2926,14 @@ namespace SmartDayClient
         }
 
 
-        public bool GetOrderFromSmartDayOrderID(string orderSmartDayID, ref int ordNo, out string errmsg)
+        public bool GetOrderFromSmartDayOrderID(string orderSmartDayID, ref int ordNo, ref string rNo, out string errmsg)
         {
             errmsg = "";
             ordNo = 0;
+            rNo = "";
 
-            string sql = $"SELECT TOP 1 OrdNo FROM Ord WHERE CsOrdno='{orderSmartDayID}' OR (CsOrdNo='' AND OrdNo={orderSmartDayID})";
-
+            //string sql = $"SELECT TOP 1 OrdNo FROM Ord WHERE CsOrdno='{orderSmartDayID}' OR (CsOrdNo='' AND OrdNo={orderSmartDayID})";
+            string sql = $"SELECT TOP 1 Ord.OrdNo, FreeInf1.R12 FROM Ord INNER JOIN FreeInf1 ON FreeInf1.OrdNo=Ord.OrdNo AND FreeInf1.InfCatNo=204 WHERE FreeInf1.Txt4='{orderSmartDayID}'";
             SqlCommand command = new SqlCommand(sql, connection)
             {
                 CommandType = CommandType.Text,
@@ -2639,6 +2955,7 @@ namespace SmartDayClient
                 if (reader.Read())
                 {
                     ordNo = reader.GetInt32(0);
+                    rNo = reader.GetString(1);
                 }
             }
             catch (Exception ex)

@@ -574,5 +574,39 @@ namespace SmartDayClient
         }
 
 
+
+
+        public static String ReadFileToBase64(string fileName)
+        {
+            String encodedfile = "";
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(fileName);
+                encodedfile = Convert.ToBase64String(bytes);
+            }
+            catch (Exception e)
+            {
+                WriteLog($"Error: ReadFileToBase64() - {e.Message}");
+                return "";
+            }
+            return encodedfile;
+        }
+
+
+        public static bool WriteFileFromBase64(string data, string fileName)
+        {           
+            try
+            {
+                byte[] tempBytes = Convert.FromBase64String(data);
+                File.WriteAllBytes(fileName, tempBytes);
+            }
+            catch (Exception e)
+            {
+                WriteLog($"Error: WriteFileFromBase64() - {e.Message}");
+                return false;
+            }
+            return true;
+        }
     }
+
 }

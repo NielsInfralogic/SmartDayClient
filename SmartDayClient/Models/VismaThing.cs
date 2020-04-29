@@ -6,6 +6,31 @@ using System.Threading.Tasks;
 
 namespace SmartDayClient.Models
 {
+    public class VismaOrderThing
+    {
+        public string RNo { get; set; } = "";
+  
+        public List<VismaDocument> Documents { get; set; }
+
+        public string SmartDayThingId { get; set; } = "";
+        
+
+        public VismaOrderThing()
+        {
+
+            Documents = new List<VismaDocument>();
+        }
+             
+    }
+
+    public class VismaDocument
+    {
+        public string DocFileName { get; set; } = "";
+        public int PK { get; set; } = 0;
+
+    }
+
+
     public class VismaThing
     {
         public string RNo { get; set; } = "";
@@ -22,7 +47,7 @@ namespace SmartDayClient.Models
         public int Dt4 { get; set; } = 0;
 
         public int Dt1 { get; set; } = 0;
-        public string Inf8 { get; set; } = "";
+        public string SmartDayId { get; set; } = "";
 
         public int CustNo { get; set; } = 0;
 
@@ -32,7 +57,7 @@ namespace SmartDayClient.Models
         public string Inf4 { get; set; } = "";
         public string Inf { get; set; } = "";
 
-        public string PictFNm { get; set; } = "";
+        public string SmartDaySiteId { get; set; } = "";
         public string R8Nm { get; set; } = "";
         public string Ad1 { get; set; } = "";
         public string Ad2 { get; set; } = "";
@@ -45,6 +70,8 @@ namespace SmartDayClient.Models
         public string MailAd { get; set; } = "";
         public int ActNoAddress { get; set; } = 0;
 
+        public string Country { get; set; } = "";
+  
 
     }
    

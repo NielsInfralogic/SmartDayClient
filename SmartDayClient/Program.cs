@@ -1,6 +1,8 @@
-﻿using System;
+﻿using SmartDayClient.Models;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,7 +59,7 @@ namespace SmartDayClient
 */
 
 
-            if (Utils.ReadConfigInt32("SyncThings", 0) > 0)
+     /*       if (Utils.ReadConfigInt32("SyncThings", 0) > 0)
             {
                 Sync sync = Utils.ReadSyncTime(Utils.ReadConfigString("ThingsSyncFile", "ThingsSyncFile.xml"));
                 List<Models.VismaThing> things = new List<Models.VismaThing>();
@@ -85,7 +87,7 @@ namespace SmartDayClient
                 }
             }
 
-
+            */
             if (Utils.ReadConfigInt32("SyncItems", 0) > 0)
             {
                 List<Models.Item> items = new List<Models.Item>();
@@ -100,34 +102,34 @@ namespace SmartDayClient
                 }
             }
 
-            if (Utils.ReadConfigInt32("SyncCustomers", 0) > 0)
-            {
-                Sync sync = Utils.ReadSyncTime(Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
-                List<Models.VismaCustomer> vismaCustomers = new List<Models.VismaCustomer>();
-                DBaccess db = new DBaccess();
-                if (db.GetNewCustomers(ref vismaCustomers, sync.LastestSync, out string errmsg) == false)
-                {
-                    Utils.WriteLog($"ERROR: db.GetNewCustomers() - {errmsg}");
-                }
-                else
-                {
-                    if (vismaCustomers.Count == 0)
-                    {
-                        Utils.WriteLog($"No new/changed customers to synchronize to Smartday");
-                        sync.LastestSync = DateTime.Now;
-                        Utils.WriteSyncTime(sync, Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
+            /*     if (Utils.ReadConfigInt32("SyncCustomers", 0) > 0)
+                 {
+                     Sync sync = Utils.ReadSyncTime(Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
+                     List<Models.VismaCustomer> vismaCustomers = new List<Models.VismaCustomer>();
+                     DBaccess db = new DBaccess();
+                     if (db.GetNewCustomers(ref vismaCustomers, sync.LastestSync, out string errmsg) == false)
+                     {
+                         Utils.WriteLog($"ERROR: db.GetNewCustomers() - {errmsg}");
+                     }
+                     else
+                     {
+                         if (vismaCustomers.Count == 0)
+                         {
+                             Utils.WriteLog($"No new/changed customers to synchronize to Smartday");
+                             sync.LastestSync = DateTime.Now;
+                             Utils.WriteSyncTime(sync, Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
 
-                    }
-                    else
-                    {
-                        if (SyncCustomersAndSites(vismaCustomers) == true)
-                        {
-                            sync.LastestSync = DateTime.Now;
-                            Utils.WriteSyncTime(sync, Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
-                        }
-                    }
-                }
-            }
+                         }
+                         else
+                         {
+                             if (SyncCustomersAndSites(vismaCustomers) == true)
+                             {
+                                 sync.LastestSync = DateTime.Now;
+                                 Utils.WriteSyncTime(sync, Utils.ReadConfigString("CustomerSyncFile", "CustomerSyncFile.xml"));
+                             }
+                         }
+                     }
+                 }*/
 
             if (Utils.ReadConfigInt32("SyncOrders", 0) > 0)
             {
@@ -177,20 +179,18 @@ namespace SmartDayClient
                 return false;
             foreach (Models.Order order in newOrders)
             {
-                // int vismaOrdNo = Utils.StringToInt(order.externalId ?? "0");
-                // int vismaProjectNo = Utils.StringToInt(order.smartdayOrder.projectReference.externalId ?? "0");
+                if (Utils.ReadConfigString("TestOrder","") != "")
+                    if (order.externalId.IndexOf(Utils.ReadConfigString("TestOrder", "")) == -1)
+                        continue;
+            
 
-                int vismaOrdNo = Utils.StringToInt(order.smartdayOrder.projectReference.externalId ?? "0"); 
-
-                int vismaCustNo = Utils.StringToInt(order.customerReference.externalId ?? "0");
-
-                // Order complete? - mark in Visma
-                if (order.smartdayOrder.status == Models.OrderStatus.Approved)  // = 8
-                    db.UpdateOrderStatus(vismaOrdNo, 29, out errmsg);
+                int vismaOrdNo = Utils.StringToInt(order.smartdayOrder.projectReference.externalId ?? "0");
 
                 // Only look at approved
                 if (order.smartdayOrder.status != Models.OrderStatus.Finished_Aborted) // = 7
                     continue;
+
+           
 
                 vismaOrdNo = db.HasOrdNo(vismaOrdNo, out errmsg);
                 if (vismaOrdNo == -1)
@@ -198,123 +198,133 @@ namespace SmartDayClient
                     Utils.WriteLog("Error: db.HasOrdNo() - " + errmsg);
                     continue;
                 }
-
+              
                 if (vismaOrdNo == 0)
                 {
                     Utils.WriteLog($"Smartday order {order.id} has no known project reference {order.smartdayOrder.projectReference.externalId}");
                     continue;
                 }
 
-                Utils.WriteLog($"Found smartday order {order.id} (visma ordno {vismaOrdNo} with change (status 8 - approved)");
+                Utils.WriteLog($"Found smartday order {order.id} (visma ordno {vismaOrdNo} with change (status 7 - Finished/aborted)");
+
+                int vismaCustNo = Utils.StringToInt(order.customerReference.externalId ?? "0");
+
+                string thingRef = "";
+                if (order.externalId != null)
+                {
+                    int n = order.externalId.IndexOf("-");
+                    thingRef = order.externalId.Substring(n + 1).Trim();
+                }
+               
 
                 // Thing new - if so create in Visma
 
-                if (order.smartdayOrder.thingReference != null)
-                {
-                    if (order.smartdayOrder.thingReference.id != null)
-                    {
-                        string thingID = order.smartdayOrder.thingReference.id;
-                        // Lookup 'anlaeg' in Visma
-                        Models.VismaThing vthing = new Models.VismaThing();
-                        vthing.RNo = "";
-                        if (db.GetThingFromSmartdayID(thingID, ref vthing, out errmsg) == false)
-                        {
-                            Utils.WriteLog("Error: db.GetThingFromSmartdayID() - " + errmsg);
-                            continue;
-                        }
-                        // If no hit - try ExternalID ( = R12.Rno)
-                        if (vthing.RNo == "")
-                        {
-                            if (db.GetThing(order.smartdayOrder.thingReference.externalId, ref vthing, out errmsg) == false)
-                            {
-                                Utils.WriteLog("Error: db.GetThing() - " + errmsg);
-                                continue;
-                            }
-                            // Repair Visma thing - set smartDayID
-                            if (vthing.RNo != "")
-                                db.RegisterThingSmartdayID(vthing.RNo, thingID, "", out errmsg);
-                        }
+                //                if (order.smartdayOrder.thingReference != null)
+                //                {
+                //                    if (order.smartdayOrder.thingReference.id != null)
+                //                    {
+                //                        string thingID = order.smartdayOrder.thingReference.id;
+                //                        // Lookup 'anlaeg' in Visma
+                //                        Models.VismaThing vthing = new Models.VismaThing();
+                //                        vthing.RNo = "";
+                //                        if (db.GetThingFromSmartdayID(thingID, ref vthing, out errmsg) == false)
+                //                        {
+                //                            Utils.WriteLog("Error: db.GetThingFromSmartdayID() - " + errmsg);
+                //                            continue;
+                //                        }
+                //                        // If no hit - try ExternalID ( = R12.Rno)
+                //                        if (vthing.RNo == "")
+                //                        {
+                //                            if (db.GetThing(order.smartdayOrder.thingReference.externalId, ref vthing, out errmsg) == false)
+                //                            {
+                //                                Utils.WriteLog("Error: db.GetThing() - " + errmsg);
+                //                                continue;
+                //                            }
+                //                            // Repair Visma thing - set smartDayID
+                //                            if (vthing.RNo != "")
+                //                                db.RegisterThingSmartdayID(vthing.RNo, thingID, "", out errmsg);
+                //                        }
 
-                        // Go create thing in Visma..
+                //                        // Go create thing in Visma..
 
-                        if (vthing.RNo == "")
-                        {
-                            Utils.WriteLog($"Found new Thing for smartday order {order.id} (visma ordno {vismaOrdNo}..");
+                //                        if (vthing.RNo == "")
+                //                        {
+                //                            Utils.WriteLog($"Found new Thing for smartday order {order.id} (visma ordno {vismaOrdNo}..");
 
-                            Models.Thing existingThing = httpClient.GetThingAsync(order.smartdayOrder.thingReference.id).Result;
-                            if (existingThing != null)
-                            {
-                                vthing.RNo = order.smartdayOrder.thingReference.externalId; //!!
-                                Models.Site thingSite = null;
+                //                            Models.Thing existingThing = httpClient.GetThingAsync(order.smartdayOrder.thingReference.id).Result;
+                //                            if (existingThing != null)
+                //                            {
+                //                                vthing.RNo = order.smartdayOrder.thingReference.externalId; //!!
+                //                                Models.Site thingSite = null;
 
-                                if (order.siteReference != null)
-                                    if (order.siteReference.id != null)
-                                        thingSite = httpClient.GetSiteAsync(order.siteReference.id).Result;
+                //                                if (order.siteReference != null)
+                //                                    if (order.siteReference.id != null)
+                //                                        thingSite = httpClient.GetSiteAsync(order.siteReference.id).Result;
 
-                                // Create new thing in Visma and link to order (line?)
-                                vthing.Inf8 = existingThing.id;
-                                vthing.Name = existingThing.name ?? "";
-                                vthing.Memo = existingThing.note ?? "";
-                                vthing.Inf5 = existingThing.placement ?? "";
-                                vthing.Inf = existingThing.serialNumber ?? "";
-                                vthing.Gr3 = existingThing.state == "Active" ? 1 : 0;
+                //                                // Create new thing in Visma and link to order (line?)
+                //                                vthing.Inf8 = existingThing.id;
+                //                                vthing.Name = existingThing.name ?? "";
+                //                                vthing.Memo = existingThing.note ?? "";
+                //                                vthing.Inf5 = existingThing.placement ?? "";
+                //                                vthing.Inf = existingThing.serialNumber ?? "";
+                //                                vthing.Gr3 = existingThing.state == "Active" ? 1 : 0;
 
-                                if (Utils.StringToDateTime(existingThing.installedDate) != DateTime.MinValue)
-                                    vthing.Dt3 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.installedDate));
-                                if (Utils.StringToDateTime(existingThing.warrantyStartDate) != DateTime.MinValue)
-                                    vthing.Dt4 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.warrantyStartDate));
-                                if (Utils.StringToDateTime(existingThing.warrantyEndDate) != DateTime.MinValue)
-                                    vthing.Dt1 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.warrantyEndDate));
+                //                                if (Utils.StringToDateTime(existingThing.installedDate) != DateTime.MinValue)
+                //                                    vthing.Dt3 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.installedDate));
+                //                                if (Utils.StringToDateTime(existingThing.warrantyStartDate) != DateTime.MinValue)
+                //                                    vthing.Dt4 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.warrantyStartDate));
+                //                                if (Utils.StringToDateTime(existingThing.warrantyEndDate) != DateTime.MinValue)
+                //                                    vthing.Dt1 = Utils.DateTimeToVismaDate(Utils.StringToDateTime(existingThing.warrantyEndDate));
 
-                                if (existingThing.customerReference != null)
-                                    vthing.CustNo = Utils.StringToInt(existingThing.customerReference.externalId ?? "");
+                //                                if (existingThing.customerReference != null)
+                //                                    vthing.CustNo = Utils.StringToInt(existingThing.customerReference.externalId ?? "");
 
-                                if (existingThing.contacts != null)
-                                {
-                                    if (existingThing.contacts.Count > 0)
-                                    {
-                                        vthing.Inf7 = existingThing.contacts[0].name ?? "";
-                                        vthing.Ad4 = existingThing.contacts[0].cellPhoneNumber ?? "";
-                                    }
-                                }
+                //                                if (existingThing.contacts != null)
+                //                                {
+                //                                    if (existingThing.contacts.Count > 0)
+                //                                    {
+                //                                        vthing.Inf7 = existingThing.contacts[0].name ?? "";
+                //                                        vthing.Ad4 = existingThing.contacts[0].cellPhoneNumber ?? "";
+                //                                    }
+                //                                }
 
-                                if (thingSite != null)
-                                {
-                                    if (thingSite.postalAddress != null)
-                                    {
-                                        vthing.Ad1 = thingSite.postalAddress.address1 + " " + thingSite.postalAddress.housenumber;
-                                        vthing.Ad2 = thingSite.postalAddress.address2 ?? "";
-                                        vthing.PArea = thingSite.postalAddress.postalArea;
-                                        vthing.PNo = thingSite.postalAddress.postalCode;
-                                        vthing.Ctry = Utils.MapCountry(thingSite.postalAddress.country);
-                                    }
-                                }
+                //                                if (thingSite != null)
+                //                                {
+                //                                    if (thingSite.postalAddress != null)
+                //                                    {
+                //                                        vthing.Ad1 = thingSite.postalAddress.address1 + " " + thingSite.postalAddress.housenumber;
+                //                                        vthing.Ad2 = thingSite.postalAddress.address2 ?? "";
+                //                                        vthing.PArea = thingSite.postalAddress.postalArea;
+                //                                        vthing.PNo = thingSite.postalAddress.postalCode;
+                //                                        vthing.Ctry = Utils.MapCountry(thingSite.postalAddress.country);
+                //                                    }
+                //                                }
 
-                                if (db.CreateThing(vthing, out errmsg) && vthing.RNo != "")
-                                {
-                                    Utils.WriteLog($"New smartday Thing added to Visma RNo = {vthing.RNo}");
-                                    // Update smartday thing with Visma RNo (in externalId)
-/*                                    existingThing.externalId = vthing.RNo;
-                                    List<Models.Thing> things = new List<Models.Thing>();
-                                    things.Add(existingThing);
-                                    List<Models.Result> results = httpClient.CreateThingsAsync(things).Result;
-                                    if (results.Count > 0)
-                                    {
-                                        if (results[0].hasError == false)
-                                        {
-                                            Utils.WriteLog($"Thing {  existingThing.id} updated ith Visma RNo {existingThing.externalId}");
-                                            return true;
-                                        }
-                                        else
-                                            Utils.WriteLog($"Error updating order   - {results[0].errorMessage} ");
-                                    }*/
-                                }
-                            ;
-                            }
-                        }
-                                                           
-                    }
-                }
+                //                                if (db.CreateThing(vthing, out errmsg) && vthing.RNo != "")
+                //                                {
+                //                                    Utils.WriteLog($"New smartday Thing added to Visma RNo = {vthing.RNo}");
+                //                                    // Update smartday thing with Visma RNo (in externalId)
+                ///*                                    existingThing.externalId = vthing.RNo;
+                //                                    List<Models.Thing> things = new List<Models.Thing>();
+                //                                    things.Add(existingThing);
+                //                                    List<Models.Result> results = httpClient.CreateThingsAsync(things).Result;
+                //                                    if (results.Count > 0)
+                //                                    {
+                //                                        if (results[0].hasError == false)
+                //                                        {
+                //                                            Utils.WriteLog($"Thing {  existingThing.id} updated ith Visma RNo {existingThing.externalId}");
+                //                                            return true;
+                //                                        }
+                //                                        else
+                //                                            Utils.WriteLog($"Error updating order   - {results[0].errorMessage} ");
+                //                                    }*/
+                //                                }
+                //                            ;
+                //                            }
+                //                        }
+
+                //                    }
+                //                }
 
                 Utils.WriteLog("Fetching materials..");
                 List<Models.Material> materials = httpClient.GetMaterialsForOrder(order.id).Result;
@@ -367,31 +377,70 @@ namespace SmartDayClient
                         }
                     }
                 }
-                string comment1 = "";
+                string commentDescription = "";
                 if (order.name != null)
                     if (order.name != "")
-                        comment1 = order.name;
-                string comment2 = "";
+                        commentDescription = order.name;
+                string commentNote1 = "";
                 if (order.smartdayOrder.crmInfo1 != null)
                     if (order.smartdayOrder.crmInfo1 != "")
-                        comment2 = order.smartdayOrder.crmInfo1;
-                string comment3 = "";
+                        commentNote1 = order.smartdayOrder.crmInfo1;
+                string commentNote2 = "";
                 if (order.smartdayOrder.crmInfo2 != null)
                     if (order.smartdayOrder.crmInfo2 != "")
-                        comment3 = order.smartdayOrder.crmInfo2;
-                string memopath1 = "";
-                string memopath2 = "";
-                string memopath3 = "";
-                db.GetOrderNoteMemoPaths(vismaOrdNo, ref memopath1, ref memopath2, ref memopath3, out errmsg);
+                        commentNote2 = order.smartdayOrder.crmInfo2;
+                string memopath201 = "";
+                string memopath202 = "";
+                string memopath203 = "";
+                db.GetOrderNoteMemoPaths(vismaOrdNo, ref memopath201, ref memopath202, ref memopath203, out errmsg);
 
-                if (comment1 != "")
-                    db.UpdateFreeInfMemo(vismaOrdNo, memopath1, 201, comment1, out errmsg);
-                if (comment2 != "")
-                    db.UpdateFreeInfMemo(vismaOrdNo, memopath2, 202, comment2, out errmsg);
-                if (comment3 != "")
-                    db.UpdateFreeInfMemo(vismaOrdNo, memopath3, 203, comment3, out errmsg);
+                if (commentDescription != "")
+                    db.UpdateFreeInfMemo(vismaOrdNo, memopath201, 201, commentDescription, out errmsg);
+                if (commentNote2 != "")
+                    db.UpdateFreeInfMemo(vismaOrdNo, memopath202, 202, commentNote2, out errmsg);
+                if (commentNote1 != "")
+                    db.UpdateFreeInfMemo(vismaOrdNo, memopath203, 203, commentNote1, out errmsg); // Correct!
+
+
+                // docs/images..!
+   
+
+                List<Models.Document> documents =  httpClient.GetOrderDocumentsAsync(order.id).Result;
+                if (documents != null)
+                {
+                    foreach(Document document in documents)
+                    {
+                        string fileNameInVisma = "";
+                        int PK = 0;
+                        if (db.GetDocumentFromSmartDayId(vismaOrdNo, "", document.id, ref fileNameInVisma, ref PK, out errmsg) == false)
+                            Utils.WriteLog($"ERROR: b.GetDocumentFromSmartDayId() - {errmsg}");
+                   
+                        if (PK == 0)
+                        {
+                            // NEW Image/doc
+                            // download image/doc
+                            string data = httpClient.GetOrderDocumentDataAsync(order.id, document.id).Result;
+                            if (data != "")
+                            {
+                                PK = 0;
+                                if (db.GetNextFreeInfPK(ref PK, out errmsg) == false)
+                                    Utils.WriteLog($"ERROR: b.GetNextFreeInfPK() - {errmsg}");
+                                if (PK > 0)
+                                {
+                                    string imageFileName = Utils.ReadConfigString("DocFolder", "") + $"\\{PK}-{Path.GetFileName(document.name)}"; 
+                                    Utils.WriteFileFromBase64(data, imageFileName);
+                                    // register image in Visma FreeInf1..
+                                
+                                    db.InsertFreeImage(PK, vismaOrdNo, document.comment != null ? document.comment : Path.GetFileName(document.name), imageFileName, out errmsg);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 UpdateSmartDayOrderStatus(order.id, Models.OrderStatus.Approved); //99Models.OrderStatus.Balanced
+                if (thingRef != "")
+                    db.UpdateOrderStatus(vismaOrdNo, thingRef, 29, out errmsg);
 
                 Models.Project project = httpClient.GetProjectAsync(order.smartdayOrder.projectReference.id).Result;
 
@@ -452,9 +501,7 @@ namespace SmartDayClient
                         Utils.WriteLog($"Error updating order   - {results[0].errorMessage} ");
                 }
             }
-
             return false;
-
         }
 
         // OK
@@ -501,7 +548,7 @@ namespace SmartDayClient
         }
 
         //
-        private static bool SyncCustomersAndSites(List<Models.VismaCustomer> vcustomers)
+        /*private static bool SyncCustomersAndSites(List<Models.VismaCustomer> vcustomers)
         {
 
             foreach (Models.VismaCustomer vcustomer in vcustomers)
@@ -509,14 +556,14 @@ namespace SmartDayClient
 
                 string customerSmartDayId = "";
                 string siteSmartDayId = "";
-                if (SyncCustomerAndSite(vcustomer, ref customerSmartDayId, ref siteSmartDayId) == false)
+                if (SyncCustomerAndSite(vcustomer, ref customerSmartDayId, ref siteSmartDayId, false) == false)
                     return false;
             }
             return true;
-        }
+        }*/
 
         // Returns Smartday SiteID
-        private static bool SyncCustomerAndSite(Models.VismaCustomer vcustomer, ref string customerSmartDayId, ref string siteSmartDayId)
+        private static bool SyncCustomerAndSite(Models.VismaCustomer vcustomer, Models.VismaSite vsite, ref string customerSmartDayId, ref string siteSmartDayId)
         {
             Utils.WriteLog("INFO: SyncCustomerAndSite()..");
             customerSmartDayId = "";
@@ -526,9 +573,10 @@ namespace SmartDayClient
             DBaccess db = new DBaccess();
 
             bool updateCustomer = true;
-
-            string smartDayID = vcustomer.Inf7 != "" ? vcustomer.Inf7 : vcustomer.CustomerNo.ToString();
-            Models.Customer customer = httpClient.GetCustomerAsync(smartDayID).Result;
+            Models.Customer customer = null;
+            string smartDayID = vcustomer.SmartDayId != "" ? vcustomer.SmartDayId : vcustomer.CustomerNo.ToString();
+            if (smartDayID != "")
+                customer = httpClient.GetCustomerAsync(smartDayID).Result;
 
             if (customer == null)
             {
@@ -551,7 +599,7 @@ namespace SmartDayClient
 
             customer.comment = vcustomer.Memo != "" ? vcustomer.Memo : null;
 
-            customer.smartdayCustomer.state = vcustomer.Group3 == 1 ? 0 : 1;
+            customer.smartdayCustomer.state = 0;// vcustomer.Group3 == 1 ? 0 : 1;
             if (Utils.ReadConfigInt32("ForceActiveCustomer", 0) > 0)
                 customer.smartdayCustomer.state = 0;
             customer.categoryReference.id = customer.isCompany ? Models.CategoryType.Customer_Erhverv.ToString() : Models.CategoryType.Customer_Privat.ToString();
@@ -619,393 +667,524 @@ namespace SmartDayClient
 
             // Now create/update the site(s)
 
-            if (customer.id != null)
+            if (customer.id != null && vsite != null)
             {
-                SyncSites(vcustomer, customer, 0);
+               SyncSites(vsite, customer, vcustomer.ActorNo, ref siteSmartDayId);
             }
 
             return customerSmartDayId != "";
         }
 
+  
         // Returns Smartday SiteID
-        private static bool SyncSites(Models.VismaCustomer vcustomer, Models.Customer customer, int specificAddressActNo)
+        private static bool SyncSites(Models.VismaSite vsite, Models.Customer customer, int actNo, ref string siteSmartDayId)
         {
+            siteSmartDayId = "";
             bool errorsDuringUpload = false;
             SmartDayHttpClient httpClient = new SmartDayHttpClient();
 
             DBaccess db = new DBaccess();
             bool updateSite = true;
-            List<Models.Site> existingSites = httpClient.GetSitesAsync(customer.id).Result;
 
-            if (vcustomer.AddressList.Count == 0)
+            if (customer.id == "")
             {
-                Utils.WriteLog($"ERROR: No address(es) defined for customer {vcustomer.CountryNumber} - unable to add/update site(s)");
+                Utils.WriteLog($"ERROR: Customer must be defined before site");
                 return false;
             }
 
-            foreach (Models.VismaActor vaddress in vcustomer.AddressList)
-            {
-                Models.Site site = null;
+            Models.Site site = null;            
+            if (vsite.SmartDayId != "")
+                site = httpClient.GetSiteAsync(vsite.SmartDayId).Result;
 
-                if (specificAddressActNo > 0 && vaddress.ActorNo != specificAddressActNo)
-                    continue;
-
-                if (vaddress.Inf7 != "")
-                    site = httpClient.GetSiteAsync(vaddress.Inf7).Result;
-
-                // Site not yet registered (in Visma..)
-                // search existing sites in Smartday for matching address..
-                /*   if (site == null)
+            // Site not yet registered (in Visma..)
+            // search existing sites in Smartday for matching address..
+            /*   if (site == null)
+               {
+                     List<Models.Site> existingSites = httpClient.GetSitesAsync(customer.id).Result;
+                   if (existingSites != null)
                    {
-                       if (existingSites != null)
+                       foreach (Models.Site existingSite in existingSites)
                        {
-                           foreach (Models.Site existingSite in existingSites)
+                           if (existingSite.name == vaddress.Name)
                            {
-                               if (existingSite.name == vaddress.Name)
+                               if (existingSite.postalAddress != null)
                                {
-                                   if (existingSite.postalAddress != null)
+                                   if (vaddress.PostCode == existingSite.postalAddress.postalCode &&
+                                       vaddress.PostalArea == existingSite.postalAddress.postalArea &&
+                                       vaddress.AddressLine1.IndexOf(existingSite.postalAddress.address1) != -1 &&
+                                       vaddress.AddressLine1.IndexOf(existingSite.postalAddress.housenumber) != -1)
                                    {
-                                       if (vaddress.PostCode == existingSite.postalAddress.postalCode &&
-                                           vaddress.PostalArea == existingSite.postalAddress.postalArea &&
-                                           vaddress.AddressLine1.IndexOf(existingSite.postalAddress.address1) != -1 &&
-                                           vaddress.AddressLine1.IndexOf(existingSite.postalAddress.housenumber) != -1)
-                                       {
-                                           // found existing match!
-                                           site = existingSite;
-                                           break;
-                                       }
+                                       // found existing match!
+                                       site = existingSite;
+                                       break;
                                    }
                                }
                            }
                        }
-                   }*/
+                   }
+               }*/
 
-                // new/unknow site - create..
-                if (site == null)
+            // new/unknow site - create..
+            if (site == null)
+            {
+                site = new Models.Site()
                 {
-                    site = new Models.Site()
+                    externalId = customer.id,
+                    id = null
+                };
+                updateSite = false;
+            }
+
+            site.name = vsite.Name;
+            site.picture = null;
+            site.serialnumber = null;
+            site.comment =  null;
+            site.state = "0"; //????
+            site.handymanSite = null;
+
+            site.customerReference.externalId = customer.externalId;
+            site.customerReference.id = customer.id;
+
+            site.categoryReference.id = customer.categoryReference.id;
+            site.categoryReference.externalId = customer.categoryReference.externalId;
+            site.categoryReference.name = customer.categoryReference.name;
+
+            if (updateSite == false)
+            {
+                site.postalAddress.id = null;
+                site.postalAddress.externalId = null;// vaddress.ActorNo.ToString();
+            }
+            site.postalAddress.postalCode = vsite.PostCode;
+            site.postalAddress.postalArea = vsite.PostalArea;
+            site.postalAddress.handymanAddress = null;
+            site.postalAddress.denmarkAddress.globalLocationNumber = null;
+            site.postalAddress.norwayAddress.boligmappaEdokNumber = null;
+            site.postalAddress.norwayAddress.boligmappaPlantID = 0;
+
+            string street = "";
+            string houseNumber = "";
+            string addressLine = vsite.AddressLine1 != "" ? vsite.AddressLine1 : vsite.AddressLine2;
+            Utils.IsolateStreetNumber(addressLine, ref street, ref houseNumber);
+            site.postalAddress.address1 = street;
+            site.postalAddress.housenumber = houseNumber;
+
+            site.postalAddress.address2 = null;//vaddress.AddressLine2;
+            site.postalAddress.country = vsite.CountryCode;
+
+            site.contacts.Clear();                
+            site.contacts.Add(new Models.Contact()
+            {
+                name = vsite.Name,
+                cellPhoneNumber = vsite.Mobile,
+                email = vsite.EmailAddress,
+                phoneNumber = vsite.Phone,
+                handymanContact = null,
+                id = null,
+                externalId = customer.id
+            });
+                
+            List<Models.Site> sites = new List<Models.Site>(); // final list
+            sites.Add(site);
+
+            List<Models.Result> results = httpClient.CreateSitesAsync(sites).Result;
+            if (results != null)
+            {
+                if (results.Count > 0)
+                {
+
+                    if (results[0].hasError == false)
                     {
-                        externalId = customer.id,
-                        id = null
-                    };
-                    updateSite = false;
-                }
-
-                site.name = vaddress.Name;
-                site.picture = null;
-                site.serialnumber = null;
-                site.comment = vaddress.Memo != "" ? vaddress.Memo : null;
-                site.state = "0"; //????
-                site.handymanSite = null;
-
-                site.customerReference.externalId = customer.externalId;
-                site.customerReference.id = customer.id;
-
-                site.categoryReference.id = customer.categoryReference.id;
-                site.categoryReference.externalId = customer.categoryReference.externalId;
-                site.categoryReference.name = customer.categoryReference.name;
-
-                if (updateSite == false)
-                {
-                    site.postalAddress.id = null;
-                    site.postalAddress.externalId = null;// vaddress.ActorNo.ToString();
-                }
-                site.postalAddress.postalCode = vaddress.PostCode;
-                site.postalAddress.postalArea = vaddress.PostalArea;
-                site.postalAddress.handymanAddress = null;
-                site.postalAddress.denmarkAddress.globalLocationNumber = null;
-                site.postalAddress.norwayAddress.boligmappaEdokNumber = null;
-                site.postalAddress.norwayAddress.boligmappaPlantID = 0;
-
-                string street = "";
-                string houseNumber = "";
-                string addressLine = vaddress.AddressLine1 != "" ? vaddress.AddressLine1 : vaddress.AddressLine2;
-                Utils.IsolateStreetNumber(addressLine, ref street, ref houseNumber);
-                site.postalAddress.address1 = street;
-                site.postalAddress.housenumber = houseNumber;
-
-                site.postalAddress.address2 = null;//vaddress.AddressLine2;
-                site.postalAddress.country = vaddress.CountryCode;
-
-
-                site.contacts.Clear();
-                foreach (Models.VismaActor actor in vcustomer.ContactList)
-                {
-                    site.contacts.Add(new Models.Contact()
+                        site.id = results[0].entity.id;
+                        site.externalId = results[0].entity.externalId;
+                        siteSmartDayId = site.id;
+                        Utils.WriteLog($"Site created/updated - {site.id} - {site.externalId}");
+                        db.RegisterSiteSmartdayID(actNo, site.id, out string errmsg);
+                    }
+                    else
                     {
-                        name = actor.Name,
-                        cellPhoneNumber = actor.Mobile,
-                        email = actor.EmailAddress,
-                        phoneNumber = actor.Phone,
-                        handymanContact = null,
-                        id = null,
-                        externalId = actor.ActorNo.ToString()
-                    });
-                }
-                List<Models.Site> sites = new List<Models.Site>(); // final list
-                sites.Add(site);
-
-                List<Models.Result> results = httpClient.CreateSitesAsync(sites).Result;
-                if (results != null)
-                {
-                    if (results.Count > 0)
-                    {
-
-                        if (results[0].hasError == false)
-                        {
-                            site.id = results[0].entity.id;
-                            site.externalId = results[0].entity.externalId;
-                            Utils.WriteLog($"Site created/updated - {site.id} - {site.externalId}");
-                            db.RegisterSiteSmartdayID(vaddress.ActorNo, site.id, out string errmsg);
-                        }
-                        else
-                        {
-                            Utils.WriteLog($"Error creating/updating site  - {results[0].errorMessage} ");
-                            errorsDuringUpload = true;
-                        }
-
-
-
+                        Utils.WriteLog($"Error creating/updating site  - {results[0].errorMessage} ");
+                        errorsDuringUpload = true;
                     }
                 }
-
             }
 
             return errorsDuringUpload ? false : true;
 
         }
 
-        private static bool SyncThings(List<Models.VismaThing> vthings)
+        /*        private static bool SyncSiteForProject(Models.VismaProject vproject, Models.VismaCustomer vcustomer, Models.Customer customer, int specificAddressActNo, ref string siteSmartDayId)
+                {
+                    siteSmartDayId = "";
+                    bool errorsDuringUpload = false;
+                    SmartDayHttpClient httpClient = new SmartDayHttpClient();
+
+                    DBaccess db = new DBaccess();
+                    bool updateSite = true;
+
+                    if (customer.id == "")
+                    {
+                        Utils.WriteLog($"ERROR: Customer must be defined before site");
+                        return false;
+                    }
+
+                    if (vcustomer.AddressList.Count != 1)
+                    {
+                        Utils.WriteLog($"ERROR: No address(es) defined for customer {vcustomer.CountryNumber} - unable to add/update site(s)");
+                        return false;
+                    }
+
+                    //   List<Models.Site> existingSites = httpClient.GetSitesAsync(customer.id).Result;
+
+
+
+                    foreach (Models.VismaActor vaddress in vcustomer.AddressList)
+                    {
+                        Models.Site site = null;
+
+                        if (specificAddressActNo > 0 && vaddress.ActorNo != specificAddressActNo)
+                            continue;
+
+                        if (vaddress.Inf7 != "")
+                            site = httpClient.GetSiteAsync(vaddress.Inf7).Result;
+
+
+                        // new/unknow site - create..
+                        if (site == null)
+                        {
+                            site = new Models.Site()
+                            {
+                                externalId = customer.id,
+                                id = null
+                            };
+                            updateSite = false;
+                        }
+
+                        site.name = vaddress.Name;
+                        site.picture = null;
+                        site.serialnumber = null;
+                        site.comment = vaddress.Memo != "" ? vaddress.Memo : null;
+                        site.state = "0"; //????
+                        site.handymanSite = null;
+
+                        site.customerReference.externalId = customer.externalId;
+                        site.customerReference.id = customer.id;
+
+                        site.categoryReference.id = customer.categoryReference.id;
+                        site.categoryReference.externalId = customer.categoryReference.externalId;
+                        site.categoryReference.name = customer.categoryReference.name;
+
+                        if (updateSite == false)
+                        {
+                            site.postalAddress.id = null;
+                            site.postalAddress.externalId = null;// vaddress.ActorNo.ToString();
+                        }
+                        site.postalAddress.postalCode = vaddress.PostCode;
+                        site.postalAddress.postalArea = vaddress.PostalArea;
+                        site.postalAddress.handymanAddress = null;
+                        site.postalAddress.denmarkAddress.globalLocationNumber = null;
+                        site.postalAddress.norwayAddress.boligmappaEdokNumber = null;
+                        site.postalAddress.norwayAddress.boligmappaPlantID = 0;
+
+                        string street = "";
+                        string houseNumber = "";
+                        string addressLine = vaddress.AddressLine1 != "" ? vaddress.AddressLine1 : vaddress.AddressLine2;
+                        Utils.IsolateStreetNumber(addressLine, ref street, ref houseNumber);
+                        site.postalAddress.address1 = street;
+                        site.postalAddress.housenumber = houseNumber;
+
+                        site.postalAddress.address2 = null;//vaddress.AddressLine2;
+                        site.postalAddress.country = vaddress.CountryCode;
+
+
+                        site.contacts.Clear();
+                        foreach (Models.VismaActor actor in vcustomer.ContactList)
+                        {
+                            site.contacts.Add(new Models.Contact()
+                            {
+                                name = actor.Name,
+                                cellPhoneNumber = actor.Mobile,
+                                email = actor.EmailAddress,
+                                phoneNumber = actor.Phone,
+                                handymanContact = null,
+                                id = null,
+                                externalId = actor.ActorNo.ToString()
+                            });
+                        }
+                        List<Models.Site> sites = new List<Models.Site>(); // final list
+                        sites.Add(site);
+
+                        List<Models.Result> results = httpClient.CreateSitesAsync(sites).Result;
+                        if (results != null)
+                        {
+                            if (results.Count > 0)
+                            {
+
+                                if (results[0].hasError == false)
+                                {
+                                    site.id = results[0].entity.id;
+                                    site.externalId = results[0].entity.externalId;
+                                    siteSmartDayId = site.id;
+                                    Utils.WriteLog($"Site created/updated - {site.id} - {site.externalId}");
+                                    db.RegisterSiteSmartdayID(vaddress.ActorNo, site.id, out string errmsg);
+                                }
+                                else
+                                {
+                                    Utils.WriteLog($"Error creating/updating site  - {results[0].errorMessage} ");
+                                    errorsDuringUpload = true;
+                                }
+
+
+
+                            }
+                        }
+
+                    }
+
+                    return errorsDuringUpload ? false : true;
+
+                } */
+
+        private static bool SyncSiteForThing(Models.VismaThing vthing, string customerSmartDayId, ref string smartdaySiteID)
+        {
+            if (smartdaySiteID == "")
+                smartdaySiteID = vthing.SmartDaySiteId;
+
+            bool errorsDuringUpload = false;
+            SmartDayHttpClient httpClient = new SmartDayHttpClient();
+
+            Models.Customer customer = httpClient.GetCustomerAsync(customerSmartDayId).Result;
+            if (customer == null)
+            {
+                Utils.WriteLog($"ERROR: SyncSiteForThing() - unable to get customer with smartdayid {customerSmartDayId}");
+                return false;
+            }
+            DBaccess db = new DBaccess();
+            bool updateSite = true;
+
+            Models.Site site = null; 
+
+            if (vthing.Ad1 == "")
+            {
+                Utils.WriteLog($"ERROR: SyncSiteForThing() No addressdefined for thing {vthing.RNo} - unable to add/update site(s)");
+                return false;
+            }
+
+            if (smartdaySiteID != "")
+            {
+                site = httpClient.GetSiteAsync(smartdaySiteID).Result;
+            }
+
+
+            // new/unknow site - create..
+            if (site == null)
+            {
+                site = new Models.Site()
+                {
+                    externalId = vthing.RNo,
+                    id = null
+                };
+                updateSite = false;
+            }
+
+            site.name = vthing.Ad1;
+            site.picture = null;
+            site.serialnumber = null;
+            site.comment =  null;
+            site.state = "0"; //????
+            site.handymanSite = null;
+
+            site.customerReference.externalId = customer.externalId;
+            site.customerReference.id = customer.id;
+
+            site.categoryReference.id = customer.categoryReference.id;
+            site.categoryReference.externalId = customer.categoryReference.externalId;
+            site.categoryReference.name = customer.categoryReference.name;
+
+            if (updateSite == false)
+            {
+                site.postalAddress.id = null;
+                site.postalAddress.externalId = null;// vaddress.ActorNo.ToString();
+            }
+            site.postalAddress.postalCode = vthing.PNo;
+            site.postalAddress.postalArea = vthing.PArea;
+            site.postalAddress.handymanAddress = null;
+            site.postalAddress.denmarkAddress.globalLocationNumber = null;
+            site.postalAddress.norwayAddress.boligmappaEdokNumber = null;
+            site.postalAddress.norwayAddress.boligmappaPlantID = 0;
+
+            string street = "";
+            string houseNumber = "";
+            string addressLine = vthing.Ad2 != "" ? vthing.Ad2 : vthing.Ad1;
+            Utils.IsolateStreetNumber(addressLine, ref street, ref houseNumber);
+            site.postalAddress.address1 = street;
+            site.postalAddress.housenumber = houseNumber;
+
+            site.postalAddress.address2 = null;//vaddress.AddressLine2;
+            site.postalAddress.country = vthing.Country;
+
+
+            List<Models.Site> sites = new List<Models.Site>(); // final list
+            sites.Add(site);
+
+            List<Models.Result> results = httpClient.CreateSitesAsync(sites).Result;
+            if (results != null)
+            {
+                if (results.Count > 0)
+                {
+
+                    if (results[0].hasError == false)
+                    {
+                        site.id = results[0].entity.id;
+                        site.externalId = results[0].entity.externalId;
+                        Utils.WriteLog($"Site created/updated - {site.id} - {site.externalId}");
+                        db.RegisterSiteSmartdayIDToThing(vthing.RNo, site.id, out string errmsg);
+                    }
+                    else
+                    {
+                        Utils.WriteLog($"Error creating/updating site  - {results[0].errorMessage} ");
+                        errorsDuringUpload = true;
+                    }
+
+
+
+                }
+            }
+
+
+
+            return errorsDuringUpload ? false : true;
+
+        }
+
+
+        private static bool SyncThing(Models.VismaThing vthing,
+            string thingCustomerId, string thingCustomerExternalId, string thingSiteId, string thingSiteExternalId)
         {
             SmartDayHttpClient httpClient = new SmartDayHttpClient();
             DBaccess db = new DBaccess();
 
             // Convert visma thing to Smartday thing
 
-            foreach (Models.VismaThing vthing in vthings)
+           
+            Models.Thing thing = null;
+
+            if (vthing.SmartDayId != "")
+                thing = httpClient.GetThingAsync(vthing.SmartDayId).Result;
+
+            if (thing == null)
             {
-                Models.Thing thing = null;
-
-                if (vthing.Inf8 != "")
-                    thing = httpClient.GetThingAsync(vthing.Inf8).Result;
-
-                if (thing == null)
+                thing = new Models.Thing()
                 {
-                    thing = new Models.Thing()
-                    {
-                        id = vthing.Inf8 != "" ? vthing.Inf8 : null,
-                        externalId = vthing.RNo,
+                    id =  null,
+                    externalId = vthing.RNo,
 
-                        created = null,
-                        handymanThing = null,
-                        lastRepairDate = null,
-                        lastServiceDate = null,
-                        manufacturingDate = null,
-                    };
-                }
+                    created = null,
+                    handymanThing = null,
+                    lastRepairDate = null,
+                    lastServiceDate = null,
+                    manufacturingDate = null,
+                };
+            }
 
-                thing.model = vthing.R8Nm != "" ? vthing.R8Nm : null;
-                thing.make = "";// vthing.RNo;
-                thing.name = vthing.Name;
-                thing.note = vthing.Memo != "" ? vthing.Memo : null;
+            thing.model = vthing.R8Nm != "" ? vthing.R8Nm : null;
+            thing.make = "";// vthing.RNo;
+            thing.name = vthing.Name;
+            thing.note = vthing.Memo != "" ? vthing.Memo : null;
 
 
-                thing.installedDate = vthing.Dt3 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt3)) + "Z" : null;
-                thing.warrantyStartDate = vthing.Dt4 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt4)) + "Z" : null;
-                thing.warrantyEndDate = vthing.Dt1 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt1)) + "Z" : null;
-                thing.state = vthing.Gr3 == 1 ? "Active" : "Disabled";
-                thing.placement = vthing.Inf5;
-                thing.serialNumber = vthing.Inf;
+            thing.installedDate = vthing.Dt3 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt3)) + "Z" : null;
+            thing.warrantyStartDate = vthing.Dt4 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt4)) + "Z" : null;
+            thing.warrantyEndDate = vthing.Dt1 > 0 ? Utils.DateTime2String(0, Utils.VismaDate2DateTime(vthing.Dt1)) + "Z" : null;
+            thing.state = "Active";//vthing.Gr3 == 1 ? "Active" : "Disabled";
+            thing.placement = vthing.Inf5;
+            thing.serialNumber = vthing.Inf;
 
-                thing.categoryReference.id = Models.CategoryType.Things_Serviceenhed.ToString();
-                thing.categoryReference.externalId = Models.CategoryType.Things_Serviceenhed.ToString();
-                thing.categoryReference.name = null;
+            thing.categoryReference.id = Models.CategoryType.Things_Serviceenhed.ToString();
+            thing.categoryReference.externalId = Models.CategoryType.Things_Serviceenhed.ToString();
+            thing.categoryReference.name = null;
 
-                thing.userReference.externalId = null;
-                thing.userReference.id = null;
+            thing.userReference.externalId = null;
+            thing.userReference.id = null;
 
-                Models.VismaCustomer vcustomer = new Models.VismaCustomer();
-                if (db.GetCustomer(vthing.CustNo, ref vcustomer, out string errmsg) == false)
-                    return false;
 
-                string customerSmartDayID = "";
-                string siteSmartDayID = "";
 
-                if (vthing.CustNo > 0)
-                {
-                    if (db.GetCustomerSmartDayId(vthing.CustNo, ref customerSmartDayID, out string errmsg1) == false)
-                        return false;
+            thing.customerReference.id = thingCustomerId != "" ? thingCustomerId : null;
+            thing.customerReference.externalId = thingCustomerExternalId;
 
-                    // customer not yet created in SmartDay?
-                    if (customerSmartDayID == "")
-                    {
-                        SyncCustomerAndSite(vcustomer, ref customerSmartDayID, ref siteSmartDayID);
-                        // re-read..
-                        if (db.GetCustomerSmartDayId(vthing.CustNo, ref customerSmartDayID, out errmsg1) == false)
-                            return false;
-                    }
+            thing.lastKnownLocation.externalId = thing.externalId;
+            thing.lastKnownLocation.id = thing.id;
+            thing.lastKnownLocation.address1 = null;
+            thing.lastKnownLocation.address2 = null;
+            thing.lastKnownLocation.housenumber = null;
+            thing.lastKnownLocation.postalCode = null;
+            thing.lastKnownLocation.postalArea = null;
+            thing.lastKnownLocation.country = null;
 
-                    thing.customerReference.id = customerSmartDayID != "" ? customerSmartDayID : null;
-                    thing.customerReference.externalId = vthing.CustNo.ToString();
-                }
-                else
-                {
-                    thing.customerReference.externalId = null;
-                    thing.customerReference.id = null;
-                }
+            thing.contacts.Add(new Models.ThingContact()
+            {
+                name = vthing.Inf7 != "" ? vthing.Inf7 : null,
+                cellPhoneNumber = vthing.Ad4 != "" ? vthing.Ad4 : null,
+                phoneNumber = vthing.Phone != "" ? vthing.Phone : null,
+                email = null,
+                handymanContact = null,
 
-                thing.lastKnownLocation.externalId = thing.externalId;
-                thing.lastKnownLocation.id = thing.id;
-                thing.lastKnownLocation.address1 = null;
-                thing.lastKnownLocation.address2 = null;
-                thing.lastKnownLocation.housenumber = null;
-                thing.lastKnownLocation.postalCode = null;
-                thing.lastKnownLocation.postalArea = null;
-                thing.lastKnownLocation.country = null;
-
-                thing.contacts.Add(new Models.ThingContact()
-                {
-                    name = vthing.Inf7 != "" ? vthing.Inf7 : null,
-                    cellPhoneNumber = vthing.Ad4 != "" ? vthing.Ad4 : null,
-                    phoneNumber = vthing.Phone != "" ? vthing.Phone : null,
-                    email = null,
-                    handymanContact = null,
-
-                });
-                thing.smartdayThing.contractType = vthing.R3 != "" ? vthing.R3 + " - " + vthing.R3R9 : null;
-                thing.smartdayThing.serviceObjectUsage = null;
-                thing.smartdayThing.addressLastUpdated = null;
+            });
+            thing.smartdayThing.contractType = vthing.R3 != "" ? vthing.R3 + " - " + vthing.R3R9 : null;
+            thing.smartdayThing.serviceObjectUsage = null;
+            thing.smartdayThing.addressLastUpdated = null;
 
                 // Resolve SITE reference
 
-                thing.parentReference.id = null;
-                thing.parentReference.externalId = null;
-                if (vthing.PictFNm != "")
+            thing.parentReference.id = thingSiteId != "" ? thingSiteId : null;
+            thing.parentReference.externalId = thingSiteExternalId;
+
+            if (string.IsNullOrEmpty(thing.externalId))
+            {
+                Utils.WriteLog("ERROR: R12.Rno cannot be empty");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(thing.parentReference.id))
+            {
+                Utils.WriteLog("ERROR: Site not set for thing");
+                return false; 
+            }
+
+            if (string.IsNullOrEmpty(thing.customerReference.externalId))
+            {
+                Utils.WriteLog("ERROR: R12.CustNo cannot be 0");
+                return false;
+            }
+
+            // now uplaod thing
+
+            List<Models.Thing> thingsToSend = new List<Models.Thing>();
+            thingsToSend.Add(thing);
+            List<Models.Result> results = httpClient.CreateThingsAsync(thingsToSend).Result;
+
+            if (results != null)
+            {
+                if (results.Count > 0)
                 {
-                    thing.parentReference.id = vthing.PictFNm;          // Site!
-                    thing.parentReference.externalId = vthing.PictFNm;
-                }
-
-
-                // Find site!
-
-                if (thing.parentReference.id == null)
-                {
-
-                    // Find matching site in Visma
-
-                    if (vthing.ActNoAddress == 0)
+                    if (results[0].hasError == false)
                     {
-                        int actNo = 0;
-                        if (db.GetCustomerActNo(Utils.StringToInt(thing.customerReference.externalId), ref actNo, out errmsg) == false)
-                        {
-                            Utils.WriteLog("ERROR: db.GetCustomerActNo() - " + errmsg);
-                        }
-                        vthing.ActNoAddress = actNo;
-                    }
-
-                    Models.VismaActor addressToUse = new Models.VismaActor();
-                    // Get address 
-                    if (vthing.ActNoAddress > 0)
-                    {
-                        if (db.GetCustomerAddressFromActNo(vthing.ActNoAddress, ref addressToUse, out errmsg) == false)
-                        {
-                            Utils.WriteLog("ERROR: db.GetCustomerAddressFromActNo() - " + errmsg);
-                        }
-                    }
-
-                    // We must use simple address comparison - arg..
-
-
-                    if (addressToUse.ActorNo > 0 && siteSmartDayID == "")
-                        if (db.GetSiteSmartdayID(addressToUse.ActorNo, ref siteSmartDayID, out errmsg) == false)
-                            Utils.WriteLog("ERROR: db.GetSiteSmartdayID() - " + errmsg);
-
-                    /*   if (addressToUse == null)
-                       {
-                           // No match - create new address is Visma..
-
-                           addressToUse = new Models.VismaActor()
-                           {
-                               AddressNo = 0, // new!
-                               ActorNo = actNo,
-                               AddressLine1 = vthing.Ad1,
-                               AddressLine2 = vthing.Ad2,
-                               AddressLine3 = vthing.Ad3,
-                               AddressLine4 = vthing.Ad4,
-                               PostalArea = vthing.PArea,
-                               PostCode = vthing.PNo,
-
-                               CountryNumber = vthing.Ctry,
-                               EmailAddress = vthing.MailAd,
-
-                           };
-                           if (db.InsertAddress(ref addressToUse, out errmsg) == false)
-                               return false;
-                       }*/
-
-
-                    if (addressToUse.ActorNo > 0 && siteSmartDayID == "")
-                    {
-                        Models.Customer customer = httpClient.GetCustomerAsync(customerSmartDayID).Result;
-
-                        SyncSites(vcustomer, customer, addressToUse.ActorNo);
-                        // re-read to get newly created Smartday siteID
-                        if (db.GetSiteSmartdayID(addressToUse.ActorNo, ref siteSmartDayID, out errmsg) == false)
-                            Utils.WriteLog("ERROR: db.GetSiteSmartdayID() - " + errmsg);
+                        thing.id = results[0].entity.id;
+                        vthing.SmartDayId = thing.id;
+                        Utils.WriteLog($"Thing created/updated - {thing.id} - {thing.externalId}");
+                        if (db.RegisterThingSmartdayID(vthing.RNo, thing.id, thing.parentReference.id, out string errmsg) == false)
+                            Utils.WriteLog($"Error db.RegisterThingSmartdayID()  - {errmsg} ");
 
                     }
-
-
-                    thing.parentReference.id = siteSmartDayID;
-                    thing.parentReference.externalId = siteSmartDayID;
-                }
-
-                if (string.IsNullOrEmpty(thing.externalId))
-                {
-                    Utils.WriteLog("ERROR: R12.Rno cannot be empty");
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(thing.parentReference.id))
-                {
-                    Utils.WriteLog("ERROR: Site not set for thing");
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(thing.customerReference.externalId))
-                {
-                    Utils.WriteLog("ERROR: R12.CustNo cannot be 0");
-                    continue;
-                }
-
-                // now uplaod thing
-
-                List<Models.Thing> thingsToSend = new List<Models.Thing>();
-                thingsToSend.Add(thing);
-                List<Models.Result> results = httpClient.CreateThingsAsync(thingsToSend).Result;
-
-                if (results != null)
-                {
-                    if (results.Count > 0)
-                    {
-                        if (results[0].hasError == false)
-                        {
-                            thing.id = results[0].entity.id;
-
-                            Utils.WriteLog($"Thing created/updated - {thing.id} - {thing.externalId}");
-                            db.RegisterThingSmartdayID(vthing.RNo, thing.id, thing.parentReference.id, out errmsg);
-                        }
-                        else
-                            Utils.WriteLog($"Error creating/updating project  - {results[0].errorMessage} ");
-                    }
+                    else
+                        Utils.WriteLog($"Error creating/updating project  - {results[0].errorMessage} ");
                 }
             }
+        
 
             return true;
         }
 
-        private static string SyncProject(Models.VismaProject vproject, int ordNo, string ownerUserId, bool createOnly)
+        private static string SyncProject(Models.VismaProject vproject, Models.VismaCustomer vcustomer,  int ordNo, string ownerUserId, bool createOnly)
         {
             SmartDayHttpClient httpClient = new SmartDayHttpClient();
             DBaccess db = new DBaccess();
@@ -1013,13 +1192,13 @@ namespace SmartDayClient
             Utils.WriteLog("INFO: SyncProject()..");
 
             Models.Project project = null;
-            if (vproject.Inf7SmartDayProjectID != "")
-                project = httpClient.GetProjectAsync(vproject.Inf7SmartDayProjectID).Result;
+            if (vproject.SmartDayProjectID != "")
+                project = httpClient.GetProjectAsync(vproject.SmartDayProjectID).Result;
 
             if (createOnly && project != null)
             {
-                Utils.WriteLog($"INFO: SyncProject() - project with id {vproject.Inf7SmartDayProjectID} already exists - skipping update.");
-                return vproject.Inf7SmartDayProjectID;
+                Utils.WriteLog($"INFO: SyncProject() - project with id {vproject.SmartDayProjectID} already exists - skipping update.");
+                return project.id;
             }
 
             if (project == null)
@@ -1035,11 +1214,12 @@ namespace SmartDayClient
                     thingReference = null,
                     offerOrderReference = null,
                     createdDate = vproject.CreateDate > 0 ? Utils.DateTime2String(1, Utils.VismaDate2DateTime(vproject.CreateDate)) + "Z" : null,
-                    status = Models.ProjectStatus.Activated
-                };
+                    status = Models.ProjectStatus.Activated,
+                    externalId = ordNo.ToString()
+            };
             }
 
-            project.externalId = ordNo.ToString(); //vproject.ProjectRno.ToString();
+           //vproject.ProjectRno.ToString();
 
             project.startDate = vproject.EstimatedStartDt > 0 ? Utils.DateTime2String(1, Utils.VismaDate2DateTime(vproject.EstimatedStartDt)) + "Z" : null;
             project.endDate = vproject.EstimatedEndDt > 0 ? Utils.DateTime2String(1, Utils.VismaDate2DateTime(vproject.EstimatedEndDt)) + "Z" : null;
@@ -1047,7 +1227,7 @@ namespace SmartDayClient
 
             project.categoryReference.id = Models.CategoryType.Project_Projekt.ToString();
             project.categoryReference.externalId = Models.CategoryType.Project_Projekt.ToString();
-
+   
 
             // Add service unit if referenced in order
             project.thingReference = null;
@@ -1055,8 +1235,8 @@ namespace SmartDayClient
             if (vproject.ServiceUnitRno != "" && Utils.ReadConfigInt32("IgnoreProjectThing",0) == 0)
             {
                 string thingSmartdayID = "";
-
-                if (db.GetThingSmartdayID(vproject.ServiceUnitRno, ref thingSmartdayID, out string errmsg2) == false)
+                string thingSmartdaySiteID = "";
+                if (db.GetThingSmartdayID(vproject.ServiceUnitRno, ref thingSmartdayID, ref thingSmartdaySiteID, out string errmsg2) == false)
                     Utils.WriteLog("ERROR: db.GetThingSmartdayID() - " + errmsg2);
                 if (thingSmartdayID != "")
                 {
@@ -1078,75 +1258,22 @@ namespace SmartDayClient
                 }
             }
 
-            project.customerReference.id = null;// vproject.CustomerNo.ToString();
+            project.customerReference.id = vcustomer.SmartDayId != "" ? vcustomer.SmartDayId : null;// vproject.CustomerNo.ToString();
             project.customerReference.externalId = vproject.CustomerNo.ToString();
 
-            string customerSmartDayID = "";
-            string siteSmartDayID = "";
-            if (db.GetCustomerSmartDayId(vproject.CustomerNo, ref customerSmartDayID, out string errmsg) == false)
-                Utils.WriteLog("ERROR: db.GetCustomerSmartDayId() - " + errmsg);
-
-            // New customer - go create!
-            if (customerSmartDayID == "")
-            {
-                Utils.WriteLog($"ERROR: Customer {vproject.CustomerNo} not sync'ed to smartday");
-
-                Models.VismaCustomer vcustomer = new Models.VismaCustomer();
-                if (db.GetCustomer(vproject.CustomerNo, ref vcustomer, out errmsg) == false)
-                {
-                    Utils.WriteLog("ERROR: db.GetCustomer() - " + errmsg);
-                    return "";
-                }
-                if (SyncCustomerAndSite(vcustomer, ref customerSmartDayID, ref siteSmartDayID) == false)
-                {
-                    Utils.WriteLog("ERROR: Unable to create new customer/site in smartday");
-                    return "";
-                }
-            }
-            if (customerSmartDayID != "")
-                project.customerReference.id = customerSmartDayID;
-
-            // Check if customer in Smartday
-            Models.Customer existingCustomer = httpClient.GetCustomerAsync(project.customerReference.id).Result;
-            if (existingCustomer == null)
-            {
-                Utils.WriteLog($"ERROR: Customer {vproject.CustomerNo} does not exist in SmartDay");
-                return "";
-            }
 
             // Now settle site!
-            Models.Site siteToUse = null;
-            List<Models.Site> sites = httpClient.GetSitesAsync(project.customerReference.id).Result;
+            Models.Site site = null;
 
-            // Take first avaialble..!
-            if (sites != null)
-            {
-                if (sites.Count > 0)
-                    siteToUse = sites[0];
-                /*                foreach (Models.Site site in sites)
-                                {
-                                    if (vproject.Address1 == "" || vproject.PostCode == "" || vproject.PostalArea == "")
-                                    {
-                                        siteToUse = site;
-                                        break;
-                                    }
-                                    if (vproject.PostCode == site.postalAddress.postalCode &&
-                                                            vproject.PostalArea == site.postalAddress.postalArea &&
-                                                            vproject.Address1.IndexOf(site.postalAddress.address1) != -1 &&
-                                                            vproject.Address1.IndexOf(site.postalAddress.housenumber) != -1)
-                                    {
-                                        // found existing match!
-                                        siteToUse = site;
-                                        break;
-                                    }
-                                }*/
-            }
+            if (vcustomer.SmartDaySiteId != "")
+                site = httpClient.GetSiteAsync(vcustomer.SmartDaySiteId).Result;
+          
 
-            if (siteToUse == null)
+            if (site == null)
                 Utils.WriteLog($"WARNING: Unable to find matching site for project {vproject.ProjectRno} {vproject.Address1} {vproject.PostCode} {vproject.PostalArea}");
 
-            project.siteReference.id = siteToUse?.id;       // Site for this custno
-            project.siteReference.externalId = siteToUse?.externalId;
+            project.siteReference.id = site?.id;       // Site for this custno
+            project.siteReference.externalId = site?.externalId;
 
             project.ownerReference.id = ownerUserId;
             project.ownerReference.externalId = project.ownerReference.id;
@@ -1175,9 +1302,11 @@ namespace SmartDayClient
                     {
                         project.id = results[0].entity.id;
                         project.externalId = results[0].entity.externalId;
+                        vproject.SmartDayProjectID = project.id;
+                        vproject.SmartDaySiteID = site != null ? site.id : "";
                         Utils.WriteLog($"Project created/updated - {project.id} - {project.externalId}");
                         //db.RegisterProjectSmartdayID(vproject.ProjectRno, project.id, out errmsg);
-                        db.RegisterProjectSmartdayID(ordNo, project.id, out errmsg);
+                        db.RegisterProjectSmartdayID(ordNo, project.id, out string errmsg);
                         return project.id;
                     }
                     else
@@ -1192,7 +1321,12 @@ namespace SmartDayClient
 
 
         // onme smartday orde per thing..
-        private static bool SyncOrder(Models.VismaOrder vorder, string smartdayProjectID, string smartdayProjectExternalID, string ownerUserId, string thingR12)
+        private static bool SyncOrder(Models.VismaOrder vorder, 
+            string smartdayProjectID, string smartdayProjectExternalID,
+            string smartdayCustomerID, string smartdayCustomerExternalID,
+            string smartdaySiteID, string smartdaySiteExternalID,
+            string smartdayThingID, string smartdayThingExternalID,
+            string ownerUserId, Models.VismaOrderThing thingR12)
         {
             SmartDayHttpClient httpClient = new SmartDayHttpClient();
             DBaccess db = new DBaccess();
@@ -1200,19 +1334,18 @@ namespace SmartDayClient
             
             string errmsg;
 
-            Models.Order order = null;
-
+         
             // Check if order already created
-            string smartDayOrderId = vorder.CustomerOrSupplierOrderNo + "-" + thingR12;
-            if (vorder.CustomerOrSupplierOrderNo != "")
-                order = httpClient.GetOrderAsync(smartDayOrderId).Result;
+            string smartDayOrderId = thingR12.SmartDayThingId != "" ? thingR12.SmartDayThingId : vorder.OrderNo + "-" + thingR12.RNo;
+
+            Models.Order order = httpClient.GetOrderAsync(smartDayOrderId).Result;
             if (order == null)
             {               
                 // New order - set id=null to indicate create
                 order = new Models.Order()
                 {
                     id = null,
-                    externalId = vorder.OrderNo.ToString(),
+                    externalId = vorder.OrderNo + "-" + thingR12.RNo,
                     name = vorder.FreeInf1Memo1 != "" ? vorder.FreeInf1Memo1 : vorder.Name,
                     createdDate = vorder.OrderDate > 0 ? Utils.DateTime2String(1, Utils.VismaDate2DateTime(vorder.OrderDate)) + "Z" : null,
                     startTime = Utils.DateTime2String(0, Utils.VismaDate2DateTime(vorder.OrderDate)) + "Z",
@@ -1238,8 +1371,8 @@ namespace SmartDayClient
             // Link project
             order.smartdayOrder.projectReference.externalId = smartdayProjectExternalID;
             order.smartdayOrder.projectReference.id = smartdayProjectID;
-            order.smartdayOrder.crmInfo1 = vorder.FreeInf1Memo2;
-            order.smartdayOrder.crmInfo2 = vorder.FreeInf1Memo3;
+            order.smartdayOrder.crmInfo1 = vorder.FreeInf1Memo3;
+            order.smartdayOrder.crmInfo2 = vorder.FreeInf1Memo2; // ??
             order.smartdayOrder.owner = ownerUserId != "" ? ownerUserId : Utils.ReadConfigString("DefaultOwner", "1");
 
             // Department
@@ -1300,137 +1433,34 @@ namespace SmartDayClient
 
             }
 
+            // Thing
+
+            if (smartdayThingID != "")
+            {
+                if (order.smartdayOrder.thingReference == null)
+                    order.smartdayOrder.thingReference = new Reference();
+                order.smartdayOrder.thingReference.id = smartdayThingID;
+                order.smartdayOrder.thingReference.externalId = smartdayThingExternalID;
+            }
             if (order.smartdayOrder.thingReference != null)
                 if (order.smartdayOrder.thingReference.id == "")
                     order.smartdayOrder.thingReference = null;
 
             // Customer
 
-            string customerSmartdayID = "";
-            string siteSmartdayID = "";
-            if (db.GetCustomerSmartDayId(vorder.CustomerNo, ref customerSmartdayID, out errmsg) == false)
-            {
-                Utils.WriteLog("ERROR: db.GetCustomerSmartDayId() - " + errmsg);
-                return false;
-            }
-            if (customerSmartdayID == "")
-            {
-                Utils.WriteLog($"ERROR: Customer {vorder.CustomerNo} not sync'ed to smartday");
-
-                Models.VismaCustomer vcustomer = new Models.VismaCustomer();
-                if (db.GetCustomer(vorder.CustomerNo, ref vcustomer, out errmsg) == false)
-                {
-                    Utils.WriteLog("ERROR: db.GetCustomer() - " + errmsg);
-                    return false;
-                }
-                if (SyncCustomerAndSite(vcustomer, ref customerSmartdayID, ref siteSmartdayID) == false)
-                {
-                    Utils.WriteLog("ERROR: Unable to create new customer/site in smartday");
-                    return false;
-                }
-            }
-
-            order.customerReference.externalId = vorder.CustomerNo.ToString();
-            order.customerReference.id = customerSmartdayID != "" ? customerSmartdayID : null;
-
-            // Check if customer correct in Smartday (?)
-            Models.Customer existingCustomer = httpClient.GetCustomerAsync(order.customerReference.id).Result;
-            if (existingCustomer == null)
-            {
-                Utils.WriteLog($"ERROR: Customer {vorder.CustomerNo} does not exist in SmartDay");
-                return false;
-            }
-
+            if (order.customerReference == null)
+                order.customerReference = new Reference();
+            order.customerReference.id = smartdayCustomerID;
+            order.customerReference.externalId = smartdayCustomerExternalID;
 
             // Site
 
-            Models.Site siteToUse = null;
-            List<Models.Site> sites = httpClient.GetSitesAsync(order.customerReference.id).Result;
-            if (sites != null)
-            {
-                if (sites.Count > 0)
-                    siteToUse = sites[0];
-                /*                foreach (Models.Site site in sites)
-                                {
-                                    if (vorder.PostCode == site.postalAddress.postalCode &&
-                                                            vorder.PostalArea == site.postalAddress.postalArea &&
-                                                            vorder.AddressLine1.IndexOf(site.postalAddress.address1) != -1 &&
-                                                            vorder.AddressLine1.IndexOf(site.postalAddress.housenumber) != -1)
-                                    {
-                                        // found existing match!
-                                        siteToUse = site;
-                                        break;
-                                    }
-                                }*/
-            }
+            if (order.siteReference == null)
+                order.siteReference = new Reference();
+            order.siteReference.id = smartdaySiteID;
+            order.siteReference.externalId = smartdaySiteExternalID;
 
-
-            if (siteToUse == null)
-                Utils.WriteLog($"WARNING: Unable to find matching site for order {vorder.OrderNo} {vorder.AddressLine1} {vorder.PostCode} {vorder.PostalArea}");
-
-            order.siteReference.id = siteToUse?.id;       // Site for this custno
-            order.siteReference.externalId = siteToUse?.externalId;
-
-            // Thing
-
-            if (thingR12 != "" && Utils.ReadConfigInt32("IgnoreOrderThing",0) == 0)
-            {
-                Utils.WriteLog($"Adding thing {thingR12} to order..");
-                try
-                {
-                    if (order.smartdayOrder.thingReference == null)
-                        order.smartdayOrder.thingReference = new Models.Reference();
-
-                    order.smartdayOrder.thingReference.externalId = thingR12;
-
-                    string thingSmartDayID = "";
-                    if (db.GetThingSmartdayID(thingR12, ref thingSmartDayID, out errmsg) == false)
-                        Utils.WriteLog("ERROR: db.GetThingSmartdayID() - " + errmsg);
-
-                    if (thingSmartDayID == "")
-                    {
-                        // Create thing in Smartday 
-
-                        Models.VismaThing vismaThing = new Models.VismaThing();
-                        if (db.GetThing(thingR12, ref vismaThing, out errmsg) == false)
-                        {
-                            Utils.WriteLog($"ERROR: db.GetThing() - {errmsg}");
-                            return false;
-                        }
-                        List<Models.VismaThing> vismaThings = new List<Models.VismaThing>();
-                        vismaThings.Add(vismaThing);
-                        SyncThings(vismaThings);
-                        if (db.GetThingSmartdayID(thingR12, ref thingSmartDayID, out errmsg) == false)
-                        {
-                            Utils.WriteLog("ERROR: db.GetThingSmartdayID() - " + errmsg);
-                        }
-                    }
-
-                    if (thingSmartDayID != "")
-                    {
-                        order.smartdayOrder.thingReference.id = thingSmartDayID;
-
-                        Models.Thing thing = httpClient.GetThingAsync(thingSmartDayID).Result;
-                        if (thing != null)
-                        {
-                            if (thing.parentReference.id != null)
-                                if (thing.parentReference.id != "")
-                                    order.siteReference.id = thing.parentReference.id;
-                            if (thing.parentReference.externalId != null)
-                                if (thing.parentReference.externalId != "")
-                                    order.siteReference.externalId = thing.parentReference.externalId;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Utils.WriteLog($"Exception adding thing to order - " + ex.Message);
-                }
-            }
-            else
-                order.smartdayOrder.thingReference = null;
-
-            // Smartday expect a list of orders to create - bue we only sync one at a time...
+        
                 
             List<Models.Order> orders = new List<Models.Order>();
             orders.Add(order);
@@ -1447,7 +1477,7 @@ namespace SmartDayClient
                         order.id = results[0].entity.id;
                         order.externalId = results[0].entity.externalId;
                         Utils.WriteLog($"Order created/updated - {order.id} - {order.externalId}");
-                        db.RegisterOrderSmartdayID(vorder.OrderNo,  order.id, out errmsg);
+                        db.RegisterOrderSmartdayID(vorder.OrderNo, thingR12.RNo,  order.id, out errmsg);
                         orderOK = true;
                     }
                     else
@@ -1457,6 +1487,50 @@ namespace SmartDayClient
                 }
                 else
                     Utils.WriteLog($"No response back from  creating/updating order ");
+            }
+
+           
+            if (orderOK && thingR12 != null)
+            {
+                Utils.WriteLog($"Number of documents/images for this order {thingR12.Documents.Count} ");
+                foreach (VismaDocument doc in thingR12.Documents)
+                {
+                    string fileNameToUse = doc.DocFileName;
+                     if (File.Exists(doc.DocFileName) == false)
+                        fileNameToUse = @"c:\temp\test.pdf";        //          Upload pictures/docs
+                    string docName = string.Format("{0}-{1}", doc.PK,  Path.GetFileName(doc.DocFileName)).Replace(" ","").Replace("\\", "").Replace("/", "");
+                    string base64 = Utils.ReadFileToBase64(fileNameToUse);
+                    if (base64 == "")
+                    {
+                        Utils.WriteLog($"Document/image  {fileNameToUse} not found.");
+                        continue;
+                    }
+                    Document document = new Document() {comment = docName, name = docName, date = order.createdDate, externalId = docName, id = null, data = base64,  };
+                    document.userReference = new Reference() { externalId = "1", id = "1" };
+                    List<Document> documents = new List<Document>();
+                    documents.Add(document);
+                    List<Models.Result> resultsDoc = httpClient.CreateOrderDocumentsAsync(order.id, documents).Result;
+                    if (resultsDoc != null)
+                    {
+                        if (resultsDoc.Count > 0)
+                        {
+                            if (resultsDoc[0].hasError == false)
+                            {
+                                string docId = results[0].entity.id;
+                                string docExternalId = results[0].entity.externalId;
+                                Utils.WriteLog($"Order document created/updated - {docId} - {docExternalId}");
+                                db.RegisterImageSmartdayId(doc.PK, docId, out errmsg);
+                       
+                            }
+                            else
+                            {
+                                Utils.WriteLog($"Error creating/updating order document - {results[0].errorMessage} ");
+                            }
+                        }
+                        else
+                            Utils.WriteLog($"No response back from  creating/updating order document");
+                    }
+                }
             }
 
             if (orderOK == false)
@@ -1602,9 +1676,8 @@ namespace SmartDayClient
                     }
                 }*/
             }
-
+           
             return true;
-
         }
 
 
@@ -1621,11 +1694,7 @@ namespace SmartDayClient
             foreach (Models.VismaOrder vorder in vorders)
             {
 
-                /*    if (vorder.R2 == 0)
-                    {
-                        Utils.WriteLog($"Error: No projects links to visma order {vorder.OrderNo}");
-                        continue;
-                    }*/
+              
                 // 1 - sync project structure..
                 Models.VismaProject vproject = new Models.VismaProject() { ProjectRno = 0 };
               
@@ -1649,67 +1718,126 @@ namespace SmartDayClient
                 string smartdayProjectID = "";
 
                 // Only sync main project once..
-                if (vproject.ProjectRno == 0)
-                {
+                //if (vproject.ProjectRno == 0)
+               // {
                     // simulate project from Visma..
-                    vproject.ProjectRno = vorder.OrderNo;
-                    vproject.ProjectTypeSt = 0;
-                    vproject.CustomerNo = vorder.CustomerNo;
-                    vproject.Name = vorder.Name;
-                    vproject.Address1 = vorder.AddressLine1;
-                    vproject.Address2 = vorder.AddressLine2;
-                    vproject.PostalArea = vorder.PostalArea;
-                    vproject.PostCode = vorder.PostCode;
-                    vproject.CreateDate = vorder.OrderDate;
-                    vproject.DeadlineDt = vorder.RequiredDeliveryDate;
-                    vproject.EstimatedEndDt = vorder.RequiredDeliveryDate;
-                    vproject.EstimatedStartDt = vorder.RequiredDeliveryDate;
-                    vproject.Inf7SmartDayProjectID = vorder.Information4; //#########
-                                                                          // vproject.StatusGroup11
-                    vproject.ServiceUnitRno = "";
-                }
-                
-                if (syncedProjectRNo != vproject.ProjectRno)
+                vproject.ProjectRno = vorder.OrderNo;
+                vproject.ProjectTypeSt = 0;
+                vproject.CustomerNo = vorder.CustomerNo;
+
+                vproject.Name = vorder.FreeInf1Memo1 != "" ? vorder.FreeInf1Memo1 : vorder.Name;
+                vproject.Address1 = vorder.AddressLine1;
+                vproject.Address2 = vorder.AddressLine2;
+                vproject.PostalArea = vorder.PostalArea;
+                vproject.PostCode = vorder.PostCode;
+                vproject.CreateDate = vorder.OrderDate;
+                vproject.DeadlineDt = vorder.RequiredDeliveryDate;
+                vproject.EstimatedEndDt = vorder.RequiredDeliveryDate;
+                vproject.EstimatedStartDt = vorder.RequiredDeliveryDate;
+                vproject.SmartDayProjectID = vorder.Information4; //#########
+
+                vproject.DeliveryName = vorder.DeliveryName;
+                vproject.DeliveryAddress1 = vorder.DeliveryAddress1;
+                vproject.DeliveryAddress2 = vorder.DeliveryAddress2;
+                vproject.DeliveryAddress3 = vorder.DeliveryAddress3;
+                vproject.DeliveryAddress4 = vorder.DeliveryAddress4;
+                vproject.DeliveryPostalArea = vorder.DeliveryPostalArea;
+                vproject.DeliveryPostCode = vorder.DeliveryPostCode;
+                vproject.ServiceUnitRno = "";
+                // }
+
+           
+                string customerSmartDayId = "";
+                string siteSmartDayId = "";
+                if (SyncCustomerAndSite(vorder.Customer,vorder.Site, ref customerSmartDayId, ref siteSmartDayId) == false)
                 {
-                    smartdayProjectID = SyncProject(vproject, vorder.OrderNo, ownerUserId, true);
-                    if (smartdayProjectID == "")
-                    {
-                        Utils.WriteLog("Unable to sync parent project - skipping order");
-                        syncedProjectRNo = 0;
-                        continue;
-                    }
-                    syncedProjectRNo = vproject.ProjectRno;
+                    Utils.WriteLog("Unable to sync customer/site for project - skipping order");
+                    syncedProjectRNo = 0;
+                    continue;
                 }
-                List<Models.VismaThing> vthingList = new List<Models.VismaThing>();
+                if (customerSmartDayId != "")
+                    vorder.Customer.SmartDayId = customerSmartDayId;
+                if (siteSmartDayId != "")
+                    vorder.Customer.SmartDaySiteId = siteSmartDayId;
+
+                smartdayProjectID = SyncProject(vproject, vorder.Customer, vorder.OrderNo, ownerUserId, true);
+                if (smartdayProjectID == "")
+                {
+                    Utils.WriteLog("Unable to sync parent project - skipping order");
+                    syncedProjectRNo = 0;
+                    continue;
+                }
+                syncedProjectRNo = vproject.ProjectRno;
+
 
                 // ## 20200427 - sync things related to project.
-                foreach (string r12 in vorder.R12List)
+
+               
+                string thingCustomerId = customerSmartDayId;    // default...
+                string thingSiteId = siteSmartDayId;            // default...
+
+                List<Models.VismaSite> sitesForThings = new List<VismaSite>();
+                sitesForThings.Add(new VismaSite()
                 {
+                    AddressLine1 = vorder.Site.AddressLine1,
+                    AddressLine2 = vorder.Site.AddressLine2,
+                    PostalArea = vorder.Site.PostalArea,
+                    PostCode = vorder.Site.PostCode,
+                    SmartDayId = siteSmartDayId
+                });
+
+                foreach (Models.VismaOrderThing r12 in vorder.R12List)
+                {
+                    
                     Models.VismaThing vthing = new Models.VismaThing();
-                    if (db.GetThing(r12, ref vthing, out string errmsg1) == false)
+                    if (db.GetThing(r12.RNo, ref vthing, out string errmsg1) == false)
                     {
                         Utils.WriteLog($"Error: db.GetThing() - {errmsg1}");
                         continue;
                     }
-                    vthingList.Add(vthing);
-                }
-                if (SyncThings(vthingList) == false)
-                    Utils.WriteLog($"Error: SyncThings failed.");
+                    thingSiteId = "";
+                    foreach (VismaSite siteToTest in sitesForThings)
+                    {
+                        if (vthing.Ad1 == siteToTest.AddressLine1 && vthing.Ad2 == siteToTest.AddressLine2 && vthing.PArea == siteToTest.PostalArea && vthing.PNo == siteToTest.PostCode)
+                        {
+                            thingSiteId = siteSmartDayId;
+                            break;
+                        }
+                    }
 
-                foreach (string r12 in vorder.R12List)
-                {
+                    if (thingSiteId == "")
+                    {
+                        SyncSiteForThing(vthing, customerSmartDayId, ref thingSiteId);
 
-                    if (SyncOrder(vorder, smartdayProjectID, ownerUserId, r12) == false)
+                    }
+
+                    sitesForThings.Add(new VismaSite() { AddressLine1 = vthing.Ad1, AddressLine2 = vthing.Ad2, PostalArea = vthing.PArea, PostCode = vthing.PNo, SmartDayId = thingSiteId });
+
+
+
+                    if (SyncThing(vthing, thingCustomerId, vorder.Customer.CustomerNo.ToString(), thingSiteId, r12.RNo) == false)
+                        Utils.WriteLog($"Error: SyncThings failed.");
+
+                    if (SyncOrder(vorder, smartdayProjectID, vorder.OrderNo.ToString(),
+                        customerSmartDayId, vorder.Customer.CustomerNo.ToString(),
+                        siteSmartDayId, customerSmartDayId, /* = siteSmartDayExternalId */
+                         vthing.SmartDayId, r12.RNo, /* = SmartDayIdExternaleThingId */
+                        ownerUserId, r12) == false)
                     {
                         Utils.WriteLog("Unable to sync order - skipping order");
                         continue;
+                    }
+                    else
+                    {
+                        if (db.UpdateOrderStatus(vorder.OrderNo, r12.RNo, 21, out errmsg) == false)
+                            Utils.WriteLog($"Error: db.UpdateOrderStatus() - {errmsg}");
                     }
 
                 }
 
 
-                if (db.UpdateOrderStatus(vorder.OrderNo, 21, out  errmsg) == false)
-                    Utils.WriteLog("ERROR: db.UpdateOrderStatus() - " + errmsg);
+                if (db.UpdateProjectStatus(vorder.OrderNo, 21, out  errmsg) == false)
+                    Utils.WriteLog("ERROR: db.UpdateProjectStatus() - " + errmsg);
             }
 
             return false;
